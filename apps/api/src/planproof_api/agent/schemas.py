@@ -34,3 +34,29 @@ class PlanItem(BaseModel):
 
     _validate_start_time = validator("start_time", allow_reuse=True)(_parse_iso8601)
     _validate_end_time = validator("end_time", allow_reuse=True)(_parse_iso8601)
+
+
+class ValidationMetrics(BaseModel):
+    constraint_violation_count: int = Field(ge=0)
+    overlap_minutes: int = Field(ge=0)
+    hallucination_count: int = Field(ge=0)
+    keyword_recall_score: float
+    human_feasibility_flags: int = Field(ge=0)
+
+
+class PlanValidation(BaseModel):
+    status: Literal["pass", "fail"]
+    metrics: ValidationMetrics
+    errors: list[StrictStr]
+
+
+class DebugInfo(BaseModel):
+    repair_attempted: bool
+    repair_success: bool
+    variant: StrictStr
+
+
+class PlanResponse(BaseModel):
+    plan: list[PlanItem]
+    validation: PlanValidation
+    debug: DebugInfo
