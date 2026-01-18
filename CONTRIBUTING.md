@@ -203,3 +203,4 @@ PlanProof values correctness over persuasion.
 ## Infrastructure
 
 - [X] Infrastructure: Docker
+- [X] Infrastructure: README
