@@ -149,6 +149,8 @@ You must strictly separate extraction, generation, and validation.
 - Do not combine tasks. 
 - You are forbidden from submitting PRs larger than ~70 lines of logic.
 - This is required for project visibility and incremental debugging.
+- You must follow the PR size limits defined in `CONTRIBUTING.md` (currently targeting PRs of roughly ~70 lines of logic).
+- These small PRs are required for project visibility and incremental debugging.
 
 ## 3. Folder Ownership (Strict)
 - **UI Lane (Claude):** `apps/api/static/**` ONLY.
