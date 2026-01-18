@@ -35,7 +35,7 @@ You are Claude working as a coding assistant in VS Code.
 ## Phase 2 — UI: Metadata & Repair Visibility
 
 - [X] **PR 2.1:** Add a "Context Extracted" section to render `extracted_metadata.detected_constraints`.
-- [ ] **PR 2.2:** Add a visual progress bar or score for `keyword_recall_score` (Target >= 0.7).
+- [X] **PR 2.2:** Add a visual progress bar or score for `keyword_recall_score` (Target >= 0.7).
 - [ ] **PR 2.3:** Add a "Repair Attempt" log that displays if `debug.repair_attempted` is true.
 
 ## Phase 3 — UI: Polish & Resilience

@@ -585,6 +585,104 @@ body {
 }
 
 /* --------------------------------------------------------------------------
+   Context Coverage Progress Bar (PR 2.2)
+   -------------------------------------------------------------------------- */
+.coverage-section {
+  margin-top: var(--space-xl);
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--color-bg-elevated);
+}
+
+.coverage-widget {
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-bg-elevated);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+}
+
+.coverage-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-sm);
+}
+
+.coverage-label {
+  font-family: var(--font-human);
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+}
+
+.coverage-label--pending {
+  font-style: italic;
+  color: var(--color-text-muted);
+}
+
+.coverage-value {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.coverage-value--fail {
+  color: var(--color-failure);
+}
+
+.coverage-value--warning {
+  color: #eab308; /* Yellow/Amber */
+}
+
+.coverage-value--pass {
+  color: var(--color-success);
+}
+
+.coverage-bar-container {
+  position: relative;
+  height: 8px;
+  background-color: var(--color-bg-elevated);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.coverage-bar {
+  height: 100%;
+  border-radius: 4px;
+  background-color: var(--color-failure);
+  transition: width 0.5s ease-out, background-color 0.3s ease;
+  width: 0%;
+}
+
+.coverage-bar--warning {
+  background-color: #eab308; /* Yellow/Amber */
+}
+
+.coverage-bar--pass {
+  background-color: var(--color-success);
+}
+
+/* Threshold marker at 70% */
+.coverage-threshold {
+  position: absolute;
+  left: 70%;
+  top: -2px;
+  bottom: -2px;
+  width: 2px;
+  background-color: var(--color-text-muted);
+  opacity: 0.6;
+}
+
+.coverage-threshold::after {
+  content: '70%';
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-system);
+  font-size: 0.625rem;
+  color: var(--color-text-muted);
+}
+
+/* --------------------------------------------------------------------------
    Errors Section
    -------------------------------------------------------------------------- */
 .errors-section {
