@@ -41,7 +41,7 @@ The implementation must conform to:
 ## Phase 2 — Eval: Deterministic Validators
 
 - [X] **PR 2.1:** Implement `eval/time_math.py` to detect overlaps between `start_time` and `end_time`.
-- [ ] **PR 2.2:** Implement `eval/hallucination.py` for Proper Noun matching between context and plan.
+- [X] **PR 2.2:** Implement `eval/hallucination.py` for Proper Noun matching between context and plan.
 - [ ] **PR 2.3:** Implement `eval/recall.py` for Keyword Recall score calculation (deterministic string match).
 - [ ] **PR 2.4:** Add unit tests for all validators in `apps/api/tests/`.
 

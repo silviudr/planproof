@@ -89,7 +89,7 @@ Generate a daily plan that is:
 | :--- | :--- | :--- |
 | **Constraint Violation** | Any task occurring during a "blocked" window or missing a "must-do." | Exactly 0 |
 | **Overlap/Overflow** | Sum of minutes where `Task A` and `Task B` time-ranges overlap. | Exactly 0 |
-| **Hallucination** | Proper Nouns or Times in Plan NOT found in Extracted Metadata. | Exactly 0 |
+| **Hallucination** | Proper Nouns, specific times, or significant action keywords (nouns/verbs) in the plan NOT found/anchored in Extracted Metadata | Exactly 0 |
 | **Keyword Recall** | `% of Extracted Task Keywords` that appear in the final Plan. | ≥ 0.7 (70%) |
 | **Human Feasibility** | Any continuous work block > 240 mins without a 15+ min break. | Exactly 0 |
 
