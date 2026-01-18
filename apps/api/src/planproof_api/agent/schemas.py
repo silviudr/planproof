@@ -47,6 +47,11 @@ class PlanItem(BaseModel):
         return _parse_iso8601(value)
 
 
+class ExtractedMetadata(BaseModel):
+    detected_constraints: list[StrictStr]
+    task_keywords: list[StrictStr]
+
+
 class ValidationMetrics(BaseModel):
     constraint_violation_count: int = Field(ge=0)
     overlap_minutes: int = Field(ge=0)
@@ -69,5 +74,9 @@ class DebugInfo(BaseModel):
 
 class PlanResponse(BaseModel):
     plan: list[PlanItem]
+    extracted_metadata: ExtractedMetadata
+    assumptions: list[StrictStr]
+    questions: list[StrictStr]
+    confidence: Literal["low", "medium", "high"]
     validation: PlanValidation
     debug: DebugInfo

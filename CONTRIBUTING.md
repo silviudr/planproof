@@ -189,7 +189,8 @@ PlanProof values correctness over persuasion.
 - [X] PR 1.1: Request & Item Models
 - [X] PR 1.2: Metrics & Response Models
 - [X] PR 1.3: API Route Stub
-- [ ] PR 2.1: Overlap Validator
+- [X] PR 2.0.1: Schema Expansion
+- [X] PR 2.1: Overlap Validator
 - [ ] PR 2.2: Hallucination Validator
 - [ ] PR 2.3: Recall Validator
 - [ ] PR 2.4: Validator Unit Tests
