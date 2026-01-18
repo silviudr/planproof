@@ -40,7 +40,7 @@ class ValidationMetrics(BaseModel):
     constraint_violation_count: int = Field(ge=0)
     overlap_minutes: int = Field(ge=0)
     hallucination_count: int = Field(ge=0)
-    keyword_recall_score: float
+    keyword_recall_score: float = Field(ge=0.0, le=1.0)
     human_feasibility_flags: int = Field(ge=0)
 
 
