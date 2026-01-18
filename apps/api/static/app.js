@@ -7,6 +7,17 @@
 // DOM Elements
 // ==========================================================================
 const elements = {
+  // Input Form
+  contextInput: document.getElementById('context-input'),
+  currentTime: document.getElementById('current-time'),
+  timezone: document.getElementById('timezone'),
+  variant: document.getElementById('variant'),
+  generateBtn: document.getElementById('generate-btn'),
+  
+  // Timeline
+  timelineContainer: document.getElementById('timeline-container'),
+  planCount: document.getElementById('plan-count'),
+  
   // Status Badge
   statusBadge: document.getElementById('status-badge'),
   
@@ -196,6 +207,184 @@ function resetValidation() {
 }
 
 // ==========================================================================
+// Timeline Rendering (PR 1.3)
+// ==========================================================================
+
+/**
+ * Formats an ISO-8601 timestamp to a human-readable time string.
+ * @param {string} isoString - ISO-8601 timestamp
+ * @returns {string} Formatted time (e.g., "09:30 AM")
+ */
+function formatTime(isoString) {
+  if (!isoString) return '—';
+  try {
+    const date = new Date(isoString);
+    return date.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    });
+  } catch {
+    return isoString;
+  }
+}
+
+/**
+ * Calculates duration in minutes between two ISO-8601 timestamps.
+ * @param {string} startIso - Start time ISO-8601
+ * @param {string} endIso - End time ISO-8601
+ * @returns {number} Duration in minutes
+ */
+function calculateDuration(startIso, endIso) {
+  try {
+    const start = new Date(startIso);
+    const end = new Date(endIso);
+    return Math.round((end - start) / (1000 * 60));
+  } catch {
+    return 0;
+  }
+}
+
+/**
+ * Creates a timeline item element for a plan task.
+ * @param {Object} item - Plan item with task, start_time, end_time, why
+ * @param {number} index - Index of the item in the plan
+ * @returns {HTMLElement} The timeline item element
+ */
+function createTimelineItem(item, index) {
+  const div = document.createElement('div');
+  div.className = 'timeline-item';
+  div.setAttribute('data-index', index);
+
+  const duration = calculateDuration(item.start_time, item.end_time);
+  const startFormatted = formatTime(item.start_time);
+  const endFormatted = formatTime(item.end_time);
+
+  div.innerHTML = `
+    <div class="timeline-dot"></div>
+    <div class="timeline-card">
+      <div class="timeline-time">
+        <span class="time-start mono">${startFormatted}</span>
+        <span class="time-separator">→</span>
+        <span class="time-end mono">${endFormatted}</span>
+        <span class="time-duration mono">(${duration} min)</span>
+      </div>
+      <h3 class="timeline-task">${escapeHtml(item.task)}</h3>
+      ${item.why ? `<p class="timeline-why">${escapeHtml(item.why)}</p>` : ''}
+    </div>
+  `;
+
+  return div;
+}
+
+/**
+ * Escapes HTML special characters to prevent XSS.
+ * @param {string} text - Raw text
+ * @returns {string} Escaped text
+ */
+function escapeHtml(text) {
+  if (!text) return '';
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+/**
+ * Renders the plan timeline with task items.
+ * @param {Array|null} plan - Array of plan items from API response
+ */
+function renderTimeline(plan) {
+  const container = elements.timelineContainer;
+  const countEl = elements.planCount;
+  if (!container) return;
+
+  // Clear existing content
+  container.innerHTML = '';
+
+  if (!plan || plan.length === 0) {
+    // Show empty state
+    container.innerHTML = `
+      <div class="timeline-empty">
+        <p class="empty-message">No plan generated yet.</p>
+        <p class="empty-hint">Enter your context and click "Generate Plan"</p>
+      </div>
+    `;
+    if (countEl) countEl.textContent = '0 tasks';
+    return;
+  }
+
+  // Render each plan item
+  plan.forEach((item, index) => {
+    const timelineItem = createTimelineItem(item, index);
+    container.appendChild(timelineItem);
+  });
+
+  // Update task count
+  if (countEl) {
+    countEl.textContent = `${plan.length} task${plan.length !== 1 ? 's' : ''}`;
+  }
+}
+
+/**
+ * Resets the timeline to empty state.
+ */
+function resetTimeline() {
+  renderTimeline(null);
+}
+
+// ==========================================================================
+// API Integration (PR 1.3)
+// ==========================================================================
+
+/**
+ * Generates a plan by calling the /api/plan endpoint.
+ */
+async function generatePlan() {
+  const context = elements.contextInput?.value || '';
+  const currentTime = elements.currentTime?.value || '';
+  const timezone = elements.timezone?.value || 'UTC';
+  const variant = elements.variant?.value || 'v1_naive';
+
+  // Validate input
+  if (!context.trim()) {
+    alert('Please enter some context for your plan.');
+    return;
+  }
+
+  // Build request body
+  const requestBody = {
+    context: context,
+    current_time: currentTime ? new Date(currentTime).toISOString() : new Date().toISOString(),
+    timezone: timezone,
+    variant: variant,
+  };
+
+  try {
+    const response = await fetch('/api/plan', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody),
+    });
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    // Render the response
+    renderTimeline(data.plan || []);
+    renderValidation(data.validation || null);
+
+  } catch (error) {
+    console.error('Failed to generate plan:', error);
+    alert(`Failed to generate plan: ${error.message}`);
+  }
+}
+
+// ==========================================================================
 // Exports for testing / future use
 // ==========================================================================
 window.PlanProof = {
@@ -204,6 +393,10 @@ window.PlanProof = {
   renderStatusBadge,
   renderChecklist,
   renderErrors,
+  renderTimeline,
+  resetTimeline,
+  generatePlan,
+  formatTime,
 };
 
 // ==========================================================================
@@ -212,4 +405,20 @@ window.PlanProof = {
 document.addEventListener('DOMContentLoaded', () => {
   // Initialize with pending state
   resetValidation();
+  resetTimeline();
+
+  // Set default current time to now
+  const currentTimeInput = elements.currentTime;
+  if (currentTimeInput) {
+    const now = new Date();
+    // Format for datetime-local input (YYYY-MM-DDTHH:MM)
+    const localIso = now.toISOString().slice(0, 16);
+    currentTimeInput.value = localIso;
+  }
+
+  // Attach event listener to Generate button
+  const generateBtn = elements.generateBtn;
+  if (generateBtn) {
+    generateBtn.addEventListener('click', generatePlan);
+  }
 });

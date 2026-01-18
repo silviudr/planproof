@@ -175,7 +175,7 @@ PlanProof values correctness over persuasion.
 
 - [X] PR 1.1: Timeline HTML Scaffold
 - [X] PR 1.2: Validation Sidebar
-- [ ] PR 1.3: Plan Data Mapping
+- [X] PR 1.3: Plan Data Mapping
 - [ ] PR 1.4: Metrics Table Mapping
 - [ ] PR 2.1: Metadata (Constraints) Section
 - [ ] PR 2.2: Keyword Recall Progress Bar
