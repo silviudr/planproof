@@ -27,6 +27,10 @@ const elements = {
   // Metrics Grid (PR 1.4)
   metricsGrid: document.getElementById('metrics-grid'),
   
+  // Constraints Section (PR 2.1)
+  constraintsSection: document.getElementById('constraints-section'),
+  constraintsList: document.getElementById('constraints-list'),
+  
   // Errors
   errorsSection: document.getElementById('errors-section'),
   errorsList: document.getElementById('errors-list'),
@@ -252,6 +256,49 @@ function resetMetricsGrid() {
   renderMetricsGrid(null);
 }
 
+// ==========================================================================
+// Extracted Constraints Rendering (PR 2.1)
+// ==========================================================================
+
+/**
+ * Renders the extracted constraints as tags.
+ * @param {string[]|null} constraints - Array of constraint strings from extracted_metadata.detected_constraints
+ */
+function renderConstraints(constraints) {
+  const list = elements.constraintsList;
+  if (!list) return;
+
+  // Clear existing items
+  list.innerHTML = '';
+
+  if (!constraints || constraints.length === 0) {
+    // Show empty state
+    const emptyItem = document.createElement('li');
+    emptyItem.className = 'constraints-empty';
+    emptyItem.textContent = 'No hard constraints detected.';
+    list.appendChild(emptyItem);
+    return;
+  }
+
+  // Render each constraint as a tag
+  constraints.forEach((constraint) => {
+    const li = document.createElement('li');
+    li.className = 'constraint-tag';
+    li.innerHTML = `
+      <span class="constraint-icon">⚡</span>
+      <span class="constraint-text">${escapeHtml(constraint)}</span>
+    `;
+    list.appendChild(li);
+  });
+}
+
+/**
+ * Resets the constraints list to initial empty state.
+ */
+function resetConstraints() {
+  renderConstraints(null);
+}
+
 /**
  * Renders the full validation state (status badge, checklist, metrics grid, errors).
  * @param {Object|null} validation - The validation object from API response
@@ -458,6 +505,10 @@ async function generatePlan() {
     // Render the response
     renderTimeline(data.plan || []);
     renderValidation(data.validation || null);
+    
+    // Render extracted metadata (PR 2.1)
+    const constraints = data.extracted_metadata?.detected_constraints || [];
+    renderConstraints(constraints);
 
   } catch (error) {
     console.error('Failed to generate plan:', error);
@@ -476,6 +527,8 @@ window.PlanProof = {
   renderErrors,
   renderMetricsGrid,
   resetMetricsGrid,
+  renderConstraints,
+  resetConstraints,
   renderTimeline,
   resetTimeline,
   generatePlan,
@@ -489,6 +542,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize with pending state
   resetValidation();
   resetTimeline();
+  resetConstraints();
 
   // Set default current time to now
   const currentTimeInput = elements.currentTime;
