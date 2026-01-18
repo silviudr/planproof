@@ -173,8 +173,8 @@ PlanProof values correctness over persuasion.
 
 ## UI Lane (Claude)
 
-- [ ] PR 1.1: Timeline HTML Scaffold
-- [ ] PR 1.2: Validation Sidebar
+- [X] PR 1.1: Timeline HTML Scaffold
+- [X] PR 1.2: Validation Sidebar
 - [ ] PR 1.3: Plan Data Mapping
 - [ ] PR 1.4: Metrics Table Mapping
 - [ ] PR 2.1: Metadata (Constraints) Section
