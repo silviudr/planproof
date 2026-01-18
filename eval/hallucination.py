@@ -8,38 +8,19 @@ from thefuzz import process
 if TYPE_CHECKING:
     from planproof_api.agent.schemas import PlanItem
 
-_WORD_PATTERN = re.compile(r"\b[a-zA-Z]{3,}\b")
+_WORD_PATTERN = re.compile(r"\b[a-zA-Z0-9\-\.]{2,}\b")
+_TIME_PATTERN = re.compile(
+    r"\b(?:[01]?\d|2[0-3]):[0-5]\d\b|\b\d{1,2}\s?(?:am|pm)\b",
+    re.IGNORECASE,
+)
 _COMMON_VERBS = {
     "do",
     "make",
     "go",
     "buy",
     "get",
-    "call",
-    "meet",
-    "meeting",
-    "email",
-    "review",
-    "write",
-    "draft",
-    "plan",
-    "schedule",
-    "check",
-    "follow",
-    "send",
-    "talk",
-    "sync",
-    "work",
     "start",
     "finish",
-    "prepare",
-    "update",
-    "read",
-    "discuss",
-    "coordinate",
-    "book",
-    "travel",
-    "wash",
 }
 _COMMON_WORDS = {
     "the",
@@ -53,10 +34,16 @@ _COMMON_WORDS = {
     "over",
     "under",
     "after",
+    "at",
     "before",
     "between",
     "during",
+    "in",
     "while",
+    "on",
+    "of",
+    "to",
+    "by",
     "this",
     "that",
     "these",
@@ -64,9 +51,13 @@ _COMMON_WORDS = {
 }
 
 
-def _extract_significant_words(text: str) -> set[str]:
+def _extract_significant_tokens(text: str) -> set[str]:
     words = {word.lower() for word in _WORD_PATTERN.findall(text)}
-    return {word for word in words if word not in _COMMON_VERBS | _COMMON_WORDS}
+    time_tokens = {match.group(0).lower() for match in _TIME_PATTERN.finditer(text)}
+    significant_words = {
+        word for word in words if word not in _COMMON_VERBS | _COMMON_WORDS
+    }
+    return significant_words | time_tokens
 
 
 def check_hallucinations(
@@ -74,12 +65,12 @@ def check_hallucinations(
     ground_truth_entities: List[str],
     task_keywords: List[str],
 ) -> int:
-    words: set[str] = set()
+    tokens: set[str] = set()
     for item in plan_items:
-        words.update(_extract_significant_words(item.task))
-        words.update(_extract_significant_words(item.why))
+        tokens.update(_extract_significant_tokens(item.task))
+        tokens.update(_extract_significant_tokens(item.why))
 
-    if not words:
+    if not tokens:
         return 0
 
     candidates = [
@@ -88,11 +79,11 @@ def check_hallucinations(
         if candidate
     ]
     if not candidates:
-        return len(words)
+        return len(tokens)
 
     hallucination_count = 0
-    for word in words:
-        match = process.extractOne(word, candidates)
+    for token in tokens:
+        match = process.extractOne(token, candidates)
         if match is None or match[1] <= 80:
             hallucination_count += 1
 
