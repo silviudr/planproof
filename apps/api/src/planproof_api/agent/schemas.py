@@ -3,17 +3,18 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, Field, StrictStr, validator
+from pydantic import BaseModel, Field, StrictStr, field_validator
 
 
-def _parse_iso8601(value: str) -> datetime:
+def _parse_iso8601(value: str) -> str:
     if not isinstance(value, str):
         raise TypeError("must be a string")
     candidate = value.replace("Z", "+00:00") if value.endswith("Z") else value
     try:
-        return datetime.fromisoformat(candidate)
+        datetime.fromisoformat(candidate)
     except ValueError as exc:
         raise ValueError("must be ISO-8601 timestamp") from exc
+    return value
 
 
 class PlanRequest(BaseModel):
@@ -22,7 +23,10 @@ class PlanRequest(BaseModel):
     timezone: StrictStr
     variant: Literal["v1_naive", "v2_structured", "v3_agentic_repair"]
 
-    _validate_current_time = validator("current_time", allow_reuse=True)(_parse_iso8601)
+    @field_validator("current_time")
+    @classmethod
+    def validate_current_time(cls, value: str) -> str:
+        return _parse_iso8601(value)
 
 
 class PlanItem(BaseModel):
@@ -32,8 +36,15 @@ class PlanItem(BaseModel):
     timebox_minutes: int = Field(ge=0)
     why: StrictStr
 
-    _validate_start_time = validator("start_time", allow_reuse=True)(_parse_iso8601)
-    _validate_end_time = validator("end_time", allow_reuse=True)(_parse_iso8601)
+    @field_validator("start_time")
+    @classmethod
+    def validate_start_time(cls, value: str) -> str:
+        return _parse_iso8601(value)
+
+    @field_validator("end_time")
+    @classmethod
+    def validate_end_time(cls, value: str) -> str:
+        return _parse_iso8601(value)
 
 
 class ValidationMetrics(BaseModel):
