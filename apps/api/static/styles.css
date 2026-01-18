@@ -476,6 +476,51 @@ body {
 }
 
 /* --------------------------------------------------------------------------
+   Extracted Constraints Section (PR 2.1)
+   -------------------------------------------------------------------------- */
+.constraints-section {
+  margin-bottom: var(--space-lg);
+  padding-bottom: var(--space-lg);
+  border-bottom: 1px solid var(--color-bg-elevated);
+}
+
+.constraints-list {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.constraint-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--space-sm);
+  background-color: rgba(139, 92, 246, 0.15);
+  border: 1px solid var(--color-accent-violet);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-human);
+  font-size: 0.75rem;
+  color: var(--color-accent-violet);
+  transition: all var(--transition-fast);
+}
+
+.constraint-tag:hover {
+  background-color: rgba(139, 92, 246, 0.25);
+}
+
+.constraint-icon {
+  font-size: 0.625rem;
+  opacity: 0.8;
+}
+
+.constraints-empty {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+/* --------------------------------------------------------------------------
    Metrics Grid (PR 1.4)
    -------------------------------------------------------------------------- */
 .metrics-section {
