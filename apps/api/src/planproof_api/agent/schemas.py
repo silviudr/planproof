@@ -53,7 +53,7 @@ class PlanValidation(BaseModel):
 class DebugInfo(BaseModel):
     repair_attempted: bool
     repair_success: bool
-    variant: StrictStr
+    variant: Literal["v1_naive", "v2_structured", "v3_agentic_repair"]
 
 
 class PlanResponse(BaseModel):
