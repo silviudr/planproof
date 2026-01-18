@@ -187,7 +187,7 @@ PlanProof values correctness over persuasion.
 ## Backend Lane (Codex)
 
 - [X] PR 1.1: Request & Item Models
-- [ ] PR 1.2: Metrics & Response Models
+- [X] PR 1.2: Metrics & Response Models
 - [ ] PR 1.3: API Route Stub
 - [ ] PR 2.1: Overlap Validator
 - [ ] PR 2.2: Hallucination Validator

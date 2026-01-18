@@ -35,7 +35,7 @@ The implementation must conform to:
 ## Phase 1 — API: Schemas & Stubs
 
 - [X] **PR 1.1:** Implement Pydantic models for `PlanRequest` and `PlanItem` (with ISO-8601 validation).
-- [ ] **PR 1.2:** Implement `ValidationMetrics` and `PlanResponse` models.
+- [X] **PR 1.2:** Implement `ValidationMetrics` and `PlanResponse` models.
 - [ ] **PR 1.3:** Update `routes.py` to return a static JSON stub matching the full `PlanResponse` schema.
 
 ## Phase 2 — Eval: Deterministic Validators
