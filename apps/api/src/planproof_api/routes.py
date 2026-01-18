@@ -40,6 +40,17 @@ def create_plan(request: PlanRequest) -> PlanResponse:
                 why="Confirm next steps and deliverables.",
             ),
         ],
+        extracted_metadata={
+            "detected_constraints": ["Client check-in at 1 PM"],
+            "task_keywords": ["inbox", "project update", "client call"],
+        },
+        assumptions=[
+            "Workday starts at 9 AM.",
+        ],
+        questions=[
+            "Any additional meetings to schedule?",
+        ],
+        confidence="medium",
         validation=PlanValidation(
             status="pass",
             metrics=ValidationMetrics(
