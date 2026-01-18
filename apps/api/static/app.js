@@ -31,6 +31,12 @@ const elements = {
   constraintsSection: document.getElementById('constraints-section'),
   constraintsList: document.getElementById('constraints-list'),
   
+  // Coverage Progress Bar (PR 2.2)
+  coverageWidget: document.getElementById('coverage-widget'),
+  coverageLabel: document.getElementById('coverage-label'),
+  coverageValue: document.getElementById('coverage-value'),
+  coverageBar: document.getElementById('coverage-bar'),
+  
   // Errors
   errorsSection: document.getElementById('errors-section'),
   errorsList: document.getElementById('errors-list'),
@@ -299,8 +305,70 @@ function resetConstraints() {
   renderConstraints(null);
 }
 
+// ==========================================================================
+// Context Coverage Progress Bar (PR 2.2)
+// ==========================================================================
+
 /**
- * Renders the full validation state (status badge, checklist, metrics grid, errors).
+ * Determines the coverage state based on score.
+ * @param {number} score - The keyword_recall_score (0.0 to 1.0)
+ * @returns {'fail' | 'warning' | 'pass'} The coverage state
+ */
+function getCoverageState(score) {
+  if (score >= 0.7) return 'pass';
+  if (score >= 0.5) return 'warning';
+  return 'fail';
+}
+
+/**
+ * Renders the context coverage progress bar.
+ * @param {number|null} score - The keyword_recall_score from validation.metrics (0.0 to 1.0)
+ */
+function renderCoverage(score) {
+  const label = elements.coverageLabel;
+  const value = elements.coverageValue;
+  const bar = elements.coverageBar;
+  
+  if (!label || !value || !bar) return;
+
+  // Handle null/missing score - show pending state
+  if (score === null || score === undefined) {
+    label.textContent = 'Calculating...';
+    label.classList.add('coverage-label--pending');
+    value.textContent = '—';
+    value.className = 'coverage-value mono';
+    bar.style.width = '0%';
+    bar.className = 'coverage-bar';
+    return;
+  }
+
+  // Clamp score between 0 and 1
+  const clampedScore = Math.max(0, Math.min(1, score));
+  const percentage = Math.round(clampedScore * 100);
+  const state = getCoverageState(clampedScore);
+
+  // Update label
+  label.textContent = 'Context Coverage';
+  label.classList.remove('coverage-label--pending');
+
+  // Update value with state color
+  value.textContent = `${percentage}%`;
+  value.className = `coverage-value mono coverage-value--${state}`;
+
+  // Update bar with animation
+  bar.style.width = `${percentage}%`;
+  bar.className = `coverage-bar coverage-bar--${state}`;
+}
+
+/**
+ * Resets the coverage widget to initial pending state.
+ */
+function resetCoverage() {
+  renderCoverage(null);
+}
+
+/**
+ * Renders the full validation state (status badge, checklist, metrics grid, coverage, errors).
  * @param {Object|null} validation - The validation object from API response
  */
 function renderValidation(validation) {
@@ -308,6 +376,7 @@ function renderValidation(validation) {
     renderStatusBadge('pending');
     renderChecklist(null);
     renderMetricsGrid(null);
+    renderCoverage(null);
     renderErrors([]);
     return;
   }
@@ -322,6 +391,10 @@ function renderValidation(validation) {
 
   // Render metrics grid (PR 1.4)
   renderMetricsGrid(validation.metrics || null);
+
+  // Render coverage progress bar (PR 2.2)
+  const recallScore = validation.metrics?.keyword_recall_score ?? null;
+  renderCoverage(recallScore);
 
   // Render errors
   renderErrors(validation.errors || []);
@@ -529,6 +602,8 @@ window.PlanProof = {
   resetMetricsGrid,
   renderConstraints,
   resetConstraints,
+  renderCoverage,
+  resetCoverage,
   renderTimeline,
   resetTimeline,
   generatePlan,
@@ -543,6 +618,7 @@ document.addEventListener('DOMContentLoaded', () => {
   resetValidation();
   resetTimeline();
   resetConstraints();
+  resetCoverage();
 
   // Set default current time to now
   const currentTimeInput = elements.currentTime;
