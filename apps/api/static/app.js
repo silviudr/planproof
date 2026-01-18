@@ -99,12 +99,6 @@ const METRIC_CONFIG = [
     format: (v) => `${(v * 100).toFixed(0)}%`,
     isPass: (v) => v >= 0.7,
   },
-  {
-    key: 'human_feasibility_flags',
-    label: 'Human Feasibility',
-    format: (v) => v.toString(),
-    isPass: (v) => v === 0,
-  },
 ];
 
 /**
@@ -210,12 +204,6 @@ const METRICS_GRID_CONFIG = [
     label: 'Keyword Recall',
     format: (v) => `${(v * 100).toFixed(0)}%`,
     isPass: (v) => v >= 0.7,
-  },
-  {
-    key: 'human_feasibility_flags',
-    label: 'Feasibility Flags',
-    format: (v) => v.toString(),
-    isPass: (v) => v === 0,
   },
 ];
 
