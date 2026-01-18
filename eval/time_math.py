@@ -26,6 +26,6 @@ def calculate_overlaps(items: List["PlanItem"]) -> int:
             overlap_start = max(intervals[i][0], intervals[j][0])
             overlap_end = min(intervals[i][1], intervals[j][1])
             if overlap_start < overlap_end:
-                overlap_minutes += int((overlap_end - overlap_start).total_seconds() // 60)
+                overlap_minutes += (overlap_end - overlap_start).total_seconds() // 60
 
     return overlap_minutes
