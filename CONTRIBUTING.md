@@ -24,12 +24,15 @@ If the contract needs to change, update it **before** modifying code.
 Each assistant or contributor may only modify the directories listed below.
 
 ### Claude (UI Lane)
+
 **May edit only:**
+
 ```
 apps/api/static/**
 ```
 
 **Must NOT edit:**
+
 - `apps/api/src/**`
 - `eval/**`
 - `docs/**`
@@ -37,7 +40,9 @@ apps/api/static/**
 ---
 
 ### GPT Codex (Backend + Evaluation Lane)
+
 **May edit only:**
+
 ```
 apps/api/src/**
 apps/api/tests/**
@@ -45,12 +50,14 @@ eval/**
 ```
 
 **Must NOT edit:**
+
 - `apps/api/static/**`
 - UI files of any kind
 
 ---
 
 ### Human Maintainer
+
 - May edit any file
 - Responsible for merges, conflict resolution, and architectural decisions
 
@@ -63,6 +70,7 @@ eval/**
 - One branch = one theme
 
 Recommended branch naming:
+
 ```
 feat/ui-*
 feat/schema-*
@@ -77,6 +85,7 @@ docs/*
 Small PRs are mandatory.
 
 A good PR:
+
 - touches **one concern**
 - contains **1–3 commits**
 - can be reviewed in under 5 minutes
@@ -109,6 +118,7 @@ docs: finalize eval contract v1.2
 ```
 
 Avoid vague messages such as:
+
 - “update stuff”
 - “fix bug”
 - “misc changes”
@@ -118,6 +128,7 @@ Avoid vague messages such as:
 ## 7. No Silent Behavior Changes
 
 Any change that affects:
+
 - validation logic
 - pass/fail rules
 - metrics
@@ -132,6 +143,7 @@ Code and contract must remain in sync at all times.
 ## 8. Observability First
 
 All non-trivial logic should be:
+
 - testable
 - observable
 - explainable
@@ -144,11 +156,13 @@ it does not belong in the system.
 ## 9. When in Doubt
 
 Prefer:
+
 - simpler logic
 - deterministic checks
 - explicit failure
 
 Over:
+
 - clever prompts
 - implicit behavior
 - silent success
@@ -158,6 +172,7 @@ PlanProof values correctness over persuasion.
 # PlanProof — Project Progress Registry
 
 ## UI Lane (Claude)
+
 - [ ] PR 1.1: Timeline HTML Scaffold
 - [ ] PR 1.2: Validation Sidebar
 - [ ] PR 1.3: Plan Data Mapping
@@ -170,7 +185,8 @@ PlanProof values correctness over persuasion.
 - [ ] PR 3.3: Failure/Rejection Styles
 
 ## Backend Lane (Codex)
-- [ ] PR 1.1: Request & Item Models
+
+- [X] PR 1.1: Request & Item Models
 - [ ] PR 1.2: Metrics & Response Models
 - [ ] PR 1.3: API Route Stub
 - [ ] PR 2.1: Overlap Validator
