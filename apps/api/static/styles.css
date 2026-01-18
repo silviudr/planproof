@@ -1,0 +1,441 @@
+/* ==========================================================================
+   PlanProof — Motivational Dashboard Styles
+   Design: Deep Slate & Vibrant Accents
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   CSS Custom Properties (Design Tokens)
+   -------------------------------------------------------------------------- */
+:root {
+  /* Colors: Backgrounds */
+  --color-bg-primary: #0f172a;
+  --color-bg-surface: #1e293b;
+  --color-bg-elevated: #334155;
+  
+  /* Colors: Accents */
+  --color-accent-violet: #8b5cf6;
+  --color-accent-sky: #0ea5e9;
+  
+  /* Colors: Status */
+  --color-success: #10b981;
+  --color-failure: #f43f5e;
+  --color-pending: #64748b;
+  
+  /* Colors: Text */
+  --color-text-primary: #f8fafc;
+  --color-text-secondary: #cbd5e1;
+  --color-text-muted: #64748b;
+  
+  /* Typography */
+  --font-human: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-system: 'JetBrains Mono', 'Roboto Mono', monospace;
+  
+  /* Spacing */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+  
+  /* Border Radius (Professional, not bubbly) */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  
+  /* Transitions */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.2s ease;
+}
+
+/* --------------------------------------------------------------------------
+   Base Styles
+   -------------------------------------------------------------------------- */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-human);
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* --------------------------------------------------------------------------
+   Dashboard Layout (40/60 Split)
+   -------------------------------------------------------------------------- */
+.dashboard {
+  display: grid;
+  grid-template-columns: 40% 60%;
+  min-height: 100vh;
+}
+
+/* --------------------------------------------------------------------------
+   Input Panel (Left 40%)
+   -------------------------------------------------------------------------- */
+.input-panel {
+  background-color: var(--color-bg-primary);
+  border-right: 1px solid var(--color-bg-elevated);
+  padding: var(--space-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.logo {
+  font-family: var(--font-human);
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  letter-spacing: -0.02em;
+}
+
+.tagline {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  margin-top: var(--space-xs);
+}
+
+/* --------------------------------------------------------------------------
+   Form Elements
+   -------------------------------------------------------------------------- */
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.input-group--half {
+  flex: 1;
+}
+
+.input-row {
+  display: flex;
+  gap: var(--space-md);
+}
+
+.input-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+}
+
+.context-textarea {
+  flex: 1;
+  min-height: 200px;
+  resize: vertical;
+  font-family: var(--font-human);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  padding: var(--space-md);
+  background-color: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-bg-elevated);
+  border-radius: var(--radius-md);
+  transition: border-color var(--transition-fast);
+}
+
+.context-textarea:focus {
+  outline: none;
+  border-color: var(--color-accent-violet);
+}
+
+.context-textarea::placeholder {
+  color: var(--color-text-muted);
+}
+
+.input-field {
+  font-family: var(--font-system);
+  font-size: 0.875rem;
+  padding: var(--space-sm) var(--space-md);
+  background-color: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-bg-elevated);
+  border-radius: var(--radius-sm);
+  transition: border-color var(--transition-fast);
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: var(--color-accent-violet);
+}
+
+/* --------------------------------------------------------------------------
+   Buttons
+   -------------------------------------------------------------------------- */
+.btn {
+  font-family: var(--font-human);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  padding: var(--space-md) var(--space-lg);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.btn--primary {
+  background-color: var(--color-accent-violet);
+  color: var(--color-text-primary);
+}
+
+.btn--primary:hover {
+  background-color: #7c3aed;
+  transform: translateY(-1px);
+}
+
+.btn--primary:active {
+  transform: translateY(0);
+}
+
+/* --------------------------------------------------------------------------
+   Output Panel (Right 60%)
+   -------------------------------------------------------------------------- */
+.output-panel {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  background-color: var(--color-bg-surface);
+}
+
+/* --------------------------------------------------------------------------
+   Timeline Panel (Human Plan)
+   -------------------------------------------------------------------------- */
+.timeline-panel {
+  padding: var(--space-xl);
+  border-right: 1px solid var(--color-bg-elevated);
+  overflow-y: auto;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-lg);
+}
+
+.panel-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.task-count {
+  font-family: var(--font-system);
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  background-color: var(--color-bg-elevated);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm);
+}
+
+/* --------------------------------------------------------------------------
+   Timeline Container
+   -------------------------------------------------------------------------- */
+.timeline {
+  position: relative;
+  padding-left: var(--space-xl);
+}
+
+/* Vertical timeline line */
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 8px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(
+    to bottom,
+    var(--color-bg-elevated) 0%,
+    var(--color-accent-violet) 50%,
+    var(--color-bg-elevated) 100%
+  );
+  border-radius: 1px;
+}
+
+.timeline-empty {
+  text-align: center;
+  padding: var(--space-2xl) var(--space-lg);
+}
+
+.empty-message {
+  font-size: 1rem;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-sm);
+}
+
+.empty-hint {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  opacity: 0.7;
+}
+
+/* --------------------------------------------------------------------------
+   Proof Sidebar (Validation)
+   -------------------------------------------------------------------------- */
+.proof-sidebar {
+  background-color: var(--color-bg-primary);
+  padding: var(--space-xl);
+  overflow-y: auto;
+}
+
+/* --------------------------------------------------------------------------
+   Status Badge
+   -------------------------------------------------------------------------- */
+.status-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-lg);
+  border-radius: var(--radius-md);
+  font-family: var(--font-system);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--space-xl);
+  transition: all var(--transition-normal);
+}
+
+.status-badge--pending {
+  background-color: var(--color-bg-surface);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-bg-elevated);
+}
+
+.status-badge--pass {
+  background-color: rgba(16, 185, 129, 0.15);
+  color: var(--color-success);
+  border: 1px solid var(--color-success);
+}
+
+.status-badge--fail {
+  background-color: rgba(244, 63, 94, 0.15);
+  color: var(--color-failure);
+  border: 1px solid var(--color-failure);
+}
+
+.status-icon {
+  font-size: 1rem;
+}
+
+/* --------------------------------------------------------------------------
+   Checklist Section
+   -------------------------------------------------------------------------- */
+.section-title {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-md);
+}
+
+.section-title--error {
+  color: var(--color-failure);
+}
+
+.checklist {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.checklist-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  background-color: var(--color-bg-surface);
+  border-radius: var(--radius-sm);
+  font-size: 0.8125rem;
+  transition: all var(--transition-fast);
+}
+
+.check-icon {
+  font-size: 0.875rem;
+  width: 1.25rem;
+  text-align: center;
+}
+
+.check-label {
+  flex: 1;
+  color: var(--color-text-secondary);
+}
+
+.check-value {
+  color: var(--color-text-muted);
+}
+
+.checklist-item--pass .check-icon {
+  color: var(--color-success);
+}
+
+.checklist-item--fail .check-icon {
+  color: var(--color-failure);
+}
+
+/* --------------------------------------------------------------------------
+   Errors Section
+   -------------------------------------------------------------------------- */
+.errors-section {
+  margin-top: var(--space-xl);
+}
+
+.errors-section--hidden {
+  display: none;
+}
+
+.errors-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.error-item {
+  font-family: var(--font-system);
+  font-size: 0.75rem;
+  color: var(--color-failure);
+  padding: var(--space-sm);
+  background-color: rgba(244, 63, 94, 0.1);
+  border-left: 2px solid var(--color-failure);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+/* --------------------------------------------------------------------------
+   Utility Classes
+   -------------------------------------------------------------------------- */
+.mono {
+  font-family: var(--font-system);
+}
+
+/* --------------------------------------------------------------------------
+   Responsive Adjustments
+   -------------------------------------------------------------------------- */
+@media (max-width: 1200px) {
+  .dashboard {
+    grid-template-columns: 1fr;
+  }
+  
+  .output-panel {
+    grid-template-columns: 1fr;
+  }
+  
+  .proof-sidebar {
+    border-top: 1px solid var(--color-bg-elevated);
+  }
+}
