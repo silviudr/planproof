@@ -191,7 +191,7 @@ PlanProof values correctness over persuasion.
 - [X] PR 1.3: API Route Stub
 - [X] PR 2.0.1: Schema Expansion
 - [X] PR 2.1: Overlap Validator
-- [ ] PR 2.2: Hallucination Validator
+- [X] PR 2.2: Hallucination Validator
 - [ ] PR 2.3: Recall Validator
 - [ ] PR 2.4: Validator Unit Tests
 - [ ] PR 3.1: Metadata Extractor
