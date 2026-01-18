@@ -37,6 +37,10 @@ const elements = {
   coverageValue: document.getElementById('coverage-value'),
   coverageBar: document.getElementById('coverage-bar'),
   
+  // Repair Section (PR 2.3)
+  repairSection: document.getElementById('repair-section'),
+  repairStatus: document.getElementById('repair-status'),
+  
   // Errors
   errorsSection: document.getElementById('errors-section'),
   errorsList: document.getElementById('errors-list'),
@@ -367,6 +371,50 @@ function resetCoverage() {
   renderCoverage(null);
 }
 
+// ==========================================================================
+// Repair Attempt Display (PR 2.3)
+// ==========================================================================
+
+/**
+ * Renders the repair attempt log section.
+ * Only shows if repair was attempted.
+ * @param {Object|null} debug - The debug object from API response
+ */
+function renderRepairLog(debug) {
+  const section = elements.repairSection;
+  const statusEl = elements.repairStatus;
+  
+  if (!section || !statusEl) return;
+
+  // Hide if no debug info or repair wasn't attempted
+  if (!debug || !debug.repair_attempted) {
+    section.classList.add('repair-section--hidden');
+    return;
+  }
+
+  // Show section
+  section.classList.remove('repair-section--hidden');
+
+  // Update status text and styling
+  if (debug.repair_success) {
+    statusEl.textContent = 'Success';
+    statusEl.className = 'repair-status repair-status--success';
+  } else {
+    statusEl.textContent = 'Failed';
+    statusEl.className = 'repair-status repair-status--fail';
+  }
+}
+
+/**
+ * Resets the repair log to hidden state.
+ */
+function resetRepairLog() {
+  const section = elements.repairSection;
+  if (section) {
+    section.classList.add('repair-section--hidden');
+  }
+}
+
 /**
  * Renders the full validation state (status badge, checklist, metrics grid, coverage, errors).
  * @param {Object|null} validation - The validation object from API response
@@ -582,6 +630,9 @@ async function generatePlan() {
     // Render extracted metadata (PR 2.1)
     const constraints = data.extracted_metadata?.detected_constraints || [];
     renderConstraints(constraints);
+    
+    // Render repair log (PR 2.3)
+    renderRepairLog(data.debug || null);
 
   } catch (error) {
     console.error('Failed to generate plan:', error);
@@ -604,6 +655,8 @@ window.PlanProof = {
   resetConstraints,
   renderCoverage,
   resetCoverage,
+  renderRepairLog,
+  resetRepairLog,
   renderTimeline,
   resetTimeline,
   generatePlan,
@@ -619,6 +672,7 @@ document.addEventListener('DOMContentLoaded', () => {
   resetTimeline();
   resetConstraints();
   resetCoverage();
+  resetRepairLog();
 
   // Set default current time to now
   const currentTimeInput = elements.currentTime;
