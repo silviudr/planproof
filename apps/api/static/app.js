@@ -24,6 +24,9 @@ const elements = {
   // Checklist
   checklist: document.getElementById('checklist'),
   
+  // Metrics Grid (PR 1.4)
+  metricsGrid: document.getElementById('metrics-grid'),
+  
   // Errors
   errorsSection: document.getElementById('errors-section'),
   errorsList: document.getElementById('errors-list'),
@@ -95,12 +98,6 @@ const METRIC_CONFIG = [
     label: 'Keyword Recall',
     format: (v) => `${(v * 100).toFixed(0)}%`,
     isPass: (v) => v >= 0.7,
-  },
-  {
-    key: 'human_feasibility_flags',
-    label: 'Human Feasibility',
-    format: (v) => v.toString(),
-    isPass: (v) => v === 0,
   },
 ];
 
@@ -175,14 +172,95 @@ function renderErrors(errors) {
   });
 }
 
+// ==========================================================================
+// Metrics Grid Rendering (PR 1.4)
+// ==========================================================================
+
 /**
- * Renders the full validation state (status badge, checklist, errors).
+ * Metric grid tile configuration.
+ * Maps metric keys to display formatting and pass conditions.
+ */
+const METRICS_GRID_CONFIG = [
+  {
+    key: 'constraint_violation_count',
+    label: 'Constraint Violations',
+    format: (v) => v.toString(),
+    isPass: (v) => v === 0,
+  },
+  {
+    key: 'overlap_minutes',
+    label: 'Overlap (min)',
+    format: (v) => v.toString(),
+    isPass: (v) => v === 0,
+  },
+  {
+    key: 'hallucination_count',
+    label: 'Hallucinations',
+    format: (v) => v.toString(),
+    isPass: (v) => v === 0,
+  },
+  {
+    key: 'keyword_recall_score',
+    label: 'Keyword Recall',
+    format: (v) => `${(v * 100).toFixed(0)}%`,
+    isPass: (v) => v >= 0.7,
+  },
+];
+
+/**
+ * Renders the metrics grid with validation metric values.
+ * @param {Object|null} metrics - The validation.metrics object from API response
+ */
+function renderMetricsGrid(metrics) {
+  const grid = elements.metricsGrid;
+  if (!grid) return;
+
+  // Clear existing tiles
+  grid.innerHTML = '';
+
+  METRICS_GRID_CONFIG.forEach((config) => {
+    const tile = document.createElement('div');
+    tile.className = 'metric-tile';
+    tile.setAttribute('data-metric', config.key);
+
+    // Determine state
+    const value = metrics ? metrics[config.key] : null;
+    const hasValue = value !== null && value !== undefined;
+    const passes = hasValue && config.isPass(value);
+
+    // Set state class
+    if (hasValue) {
+      tile.classList.add(passes ? 'metric-tile--pass' : 'metric-tile--fail');
+    }
+
+    // Format display value
+    const displayValue = hasValue ? config.format(value) : '—';
+
+    tile.innerHTML = `
+      <span class="metric-value mono">${displayValue}</span>
+      <span class="metric-label">${config.label}</span>
+    `;
+
+    grid.appendChild(tile);
+  });
+}
+
+/**
+ * Resets the metrics grid to initial pending state.
+ */
+function resetMetricsGrid() {
+  renderMetricsGrid(null);
+}
+
+/**
+ * Renders the full validation state (status badge, checklist, metrics grid, errors).
  * @param {Object|null} validation - The validation object from API response
  */
 function renderValidation(validation) {
   if (!validation) {
     renderStatusBadge('pending');
     renderChecklist(null);
+    renderMetricsGrid(null);
     renderErrors([]);
     return;
   }
@@ -194,6 +272,9 @@ function renderValidation(validation) {
 
   // Render checklist with metrics
   renderChecklist(validation.metrics || null);
+
+  // Render metrics grid (PR 1.4)
+  renderMetricsGrid(validation.metrics || null);
 
   // Render errors
   renderErrors(validation.errors || []);
@@ -393,6 +474,8 @@ window.PlanProof = {
   renderStatusBadge,
   renderChecklist,
   renderErrors,
+  renderMetricsGrid,
+  resetMetricsGrid,
   renderTimeline,
   resetTimeline,
   generatePlan,

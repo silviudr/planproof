@@ -476,6 +476,70 @@ body {
 }
 
 /* --------------------------------------------------------------------------
+   Metrics Grid (PR 1.4)
+   -------------------------------------------------------------------------- */
+.metrics-section {
+  margin-top: var(--space-xl);
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--color-bg-elevated);
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-sm);
+}
+
+.metric-tile {
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-bg-elevated);
+  border-radius: var(--radius-sm);
+  padding: var(--space-md);
+  text-align: center;
+  transition: all var(--transition-fast);
+}
+
+.metric-tile:last-child:nth-child(odd) {
+  grid-column: span 2;
+}
+
+.metric-tile--pass {
+  border-color: var(--color-success);
+  background-color: rgba(16, 185, 129, 0.08);
+}
+
+.metric-tile--fail {
+  border-color: var(--color-failure);
+  background-color: rgba(244, 63, 94, 0.08);
+}
+
+.metric-value {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  line-height: 1.2;
+  margin-bottom: var(--space-xs);
+}
+
+.metric-tile--pass .metric-value {
+  color: var(--color-success);
+}
+
+.metric-tile--fail .metric-value {
+  color: var(--color-failure);
+}
+
+.metric-label {
+  display: block;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+}
+
+/* --------------------------------------------------------------------------
    Errors Section
    -------------------------------------------------------------------------- */
 .errors-section {
