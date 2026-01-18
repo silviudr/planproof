@@ -198,3 +198,7 @@ PlanProof values correctness over persuasion.
 - [ ] PR 3.3: 1-Shot Repair Loop
 - [ ] PR 4.1: Opik Trace Scaffolding
 - [ ] PR 4.2: Opik Metrics Integration
+
+## Infrastructure
+
+- [x] Infrastructure: Docker
