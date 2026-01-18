@@ -30,7 +30,7 @@ You are Claude working as a coding assistant in VS Code.
 - [X] **PR 1.1:** Update `index.html` with a chronological timeline container for `plan[]`.
 - [X] **PR 1.2:** Implement the Validation Status badge (PASS/FAIL) and Errors list sidebar.
 - [X] **PR 1.3:** Map `plan[]` items to render `task`, `start_time`, `end_time`, and `why`.
-- [ ] **PR 1.4:** Render a `validation.metrics` table (Constraint violations, Overlaps, Hallucinations).
+- [X] **PR 1.4:** Render a `validation.metrics` table (Constraint violations, Overlaps, Hallucinations).
 
 ## Phase 2 — UI: Metadata & Repair Visibility
 
