@@ -15,7 +15,7 @@ router = APIRouter()
 
 
 @router.post("/api/plan", response_model=PlanResponse)
-def create_plan(_: PlanRequest) -> PlanResponse:
+def create_plan(request: PlanRequest) -> PlanResponse:
     return PlanResponse(
         plan=[
             PlanItem(
