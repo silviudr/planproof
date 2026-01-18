@@ -188,7 +188,7 @@ PlanProof values correctness over persuasion.
 
 - [X] PR 1.1: Request & Item Models
 - [X] PR 1.2: Metrics & Response Models
-- [ ] PR 1.3: API Route Stub
+- [X] PR 1.3: API Route Stub
 - [ ] PR 2.1: Overlap Validator
 - [ ] PR 2.2: Hallucination Validator
 - [ ] PR 2.3: Recall Validator
@@ -201,4 +201,4 @@ PlanProof values correctness over persuasion.
 
 ## Infrastructure
 
-- [x] Infrastructure: Docker
+- [X] Infrastructure: Docker
