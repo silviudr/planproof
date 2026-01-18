@@ -149,7 +149,7 @@ You must strictly separate extraction, generation, and validation.
 - Do not combine tasks. 
 - You are forbidden from submitting PRs larger than ~70 lines of logic.
 - This is required for project visibility and incremental debugging.
-- You must follow the PR size limits defined in `CONTRIBUTING.md` (currently targeting PRs of roughly ~70 lines of logic).
+- You must follow the PR discipline defined in `CONTRIBUTING.md` (one concern per PR, 1–3 commits, reviewable in under 5 minutes).
 - These small PRs are required for project visibility and incremental debugging.
 
 ## 3. Folder Ownership (Strict)
