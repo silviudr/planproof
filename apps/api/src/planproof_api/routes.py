@@ -43,11 +43,11 @@ def create_plan(request: PlanRequest) -> PlanResponse:
         validation=PlanValidation(
             status="pass",
             metrics=ValidationMetrics(
-                constraint_violation_count=0,
-                overlap_minutes=0,
-                hallucination_count=0,
-                keyword_recall_score=0.8,
-                human_feasibility_flags=0,
+                constraint_violation_count=1,
+                overlap_minutes=15,
+                hallucination_count=2,
+                keyword_recall_score=0.75,
+                human_feasibility_flags=1,
             ),
             errors=[],
         ),
