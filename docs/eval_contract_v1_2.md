@@ -46,6 +46,15 @@ Generate a daily plan that is:
       "why": "string"
     }
   ],
+  "extracted_metadata": {
+    "detected_constraints": ["string"],
+    "task_keywords": ["string"]
+  },
+
+  "assumptions": ["string"],
+  "questions": ["string"],
+  "confidence": "low | medium | high",
+    
   "validation": {
     "status": "pass | fail",
     "metrics": {
