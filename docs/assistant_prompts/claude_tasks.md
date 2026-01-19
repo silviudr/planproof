@@ -40,7 +40,7 @@ You are Claude working as a coding assistant in VS Code.
 
 ## Phase 3 — UI: Polish & Resilience
 
-- [ ] **PR 3.1:** Implement loading states (spinner + disable "Generate" button during flight).
+- [X] **PR 3.1:** Implement loading states (spinner + disable "Generate" button during flight).
 - [ ] **PR 3.2:** Implement defensive rendering (prevent crashes if `metrics` or `plan` fields are missing).
 - [ ] **PR 3.3:** Apply "Rejected" styling (gray/muted) to plans where `validation.status == "fail"`.
 
