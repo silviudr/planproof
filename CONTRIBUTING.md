@@ -181,7 +181,7 @@ PlanProof values correctness over persuasion.
 - [X] PR 2.2: Keyword Recall Progress Bar
 - [X] PR 2.3: Repair Attempt Display
 - [X] PR 3.1: Loading/Interaction States
-- [ ] PR 3.2: Defensive Rendering
+- [X] PR 3.2: Defensive Rendering
 - [ ] PR 3.3: Failure/Rejection Styles
 
 ## Backend Lane (Codex)

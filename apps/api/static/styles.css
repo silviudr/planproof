@@ -354,6 +354,12 @@ body {
   transform: translateX(4px);
 }
 
+/* Error card state (PR 3.2) */
+.timeline-card--error {
+  border-color: #fb923c;
+  background-color: rgba(251, 146, 60, 0.1);
+}
+
 /* Time display row */
 .timeline-time {
   display: flex;
@@ -445,6 +451,13 @@ body {
   background-color: rgba(244, 63, 94, 0.15);
   color: var(--color-failure);
   border: 1px solid var(--color-failure);
+}
+
+/* API Error State (PR 3.2) */
+.status-badge--error {
+  background-color: rgba(251, 146, 60, 0.15);
+  color: #fb923c;
+  border: 1px solid #fb923c;
 }
 
 .status-icon {
