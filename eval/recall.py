@@ -16,9 +16,9 @@ def calculate_recall(plan_items: List["PlanItem"], task_keywords: List[str]) -> 
     candidates: list[str] = []
     for item in plan_items:
         if item.task:
-            candidates.append(item.task)
+            candidates.append(item.task.lower())
         if item.why:
-            candidates.append(item.why)
+            candidates.append(item.why.lower())
 
     if not candidates:
         return 0.0
@@ -26,9 +26,8 @@ def calculate_recall(plan_items: List["PlanItem"], task_keywords: List[str]) -> 
     matched = 0
     for keyword in keywords:
         match = process.extractOne(
-            keyword,
+            keyword.lower(),
             candidates,
-            processor=lambda text: text.lower(),
         )
         if match is not None and match[1] > 80:
             matched += 1
