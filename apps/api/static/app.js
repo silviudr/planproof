@@ -41,6 +41,10 @@ const elements = {
   repairSection: document.getElementById('repair-section'),
   repairStatus: document.getElementById('repair-status'),
   
+  // Loading State (PR 3.1)
+  timelineLoading: document.getElementById('timeline-loading'),
+  loadingMessage: document.getElementById('loading-message'),
+  
   // Errors
   errorsSection: document.getElementById('errors-section'),
   errorsList: document.getElementById('errors-list'),
@@ -582,6 +586,78 @@ function resetTimeline() {
 }
 
 // ==========================================================================
+// Loading State Management (PR 3.1)
+// ==========================================================================
+
+const LOADING_MESSAGES = [
+  'Applying deterministic guardrails...',
+  'Scanning for temporal conflicts...',
+  'Verifying constraint adherence...',
+  'Analyzing logical dependencies...',
+  'Cross-referencing keywords...',
+];
+
+let loadingMessageInterval = null;
+
+/**
+ * Shows the loading state: disable button, show spinner, cycle messages.
+ */
+function showLoadingState() {
+  const btn = elements.generateBtn;
+  if (btn) {
+    btn.disabled = true;
+    btn.classList.add('btn--loading');
+    btn.dataset.originalText = btn.textContent;
+    btn.textContent = 'Analyzing Context...';
+  }
+  
+  // Show loading spinner in timeline
+  const loading = elements.timelineLoading;
+  const empty = document.querySelector('.timeline-empty');
+  if (loading) loading.classList.add('timeline-loading--active');
+  if (empty) empty.style.display = 'none';
+  
+  // Clear existing timeline items
+  const container = elements.timelineContainer;
+  if (container) {
+    const items = container.querySelectorAll('.timeline-item');
+    items.forEach(item => item.remove());
+  }
+  
+  // Cycle through loading messages
+  let msgIndex = 0;
+  if (elements.loadingMessage) {
+    elements.loadingMessage.textContent = LOADING_MESSAGES[0];
+    loadingMessageInterval = setInterval(() => {
+      msgIndex = (msgIndex + 1) % LOADING_MESSAGES.length;
+      elements.loadingMessage.textContent = LOADING_MESSAGES[msgIndex];
+    }, 2000);
+  }
+}
+
+/**
+ * Hides the loading state: re-enable button, hide spinner.
+ */
+function hideLoadingState() {
+  const btn = elements.generateBtn;
+  if (btn) {
+    btn.disabled = false;
+    btn.classList.remove('btn--loading');
+    btn.textContent = btn.dataset.originalText || 'Generate Plan';
+  }
+  
+  // Hide loading spinner
+  const loading = elements.timelineLoading;
+  if (loading) loading.classList.remove('timeline-loading--active');
+  
+  // Clear message cycling
+  if (loadingMessageInterval) {
+    clearInterval(loadingMessageInterval);
+    loadingMessageInterval = null;
+  }
+}
+
+// ==========================================================================
 // API Integration (PR 1.3)
 // ==========================================================================
 
@@ -599,6 +675,9 @@ async function generatePlan() {
     alert('Please enter some context for your plan.');
     return;
   }
+
+  // Show loading state (PR 3.1)
+  showLoadingState();
 
   // Build request body
   const requestBody = {
@@ -633,9 +712,13 @@ async function generatePlan() {
     
     // Render repair log (PR 2.3)
     renderRepairLog(data.debug || null);
+    
+    // Hide loading state (PR 3.1)
+    hideLoadingState();
 
   } catch (error) {
     console.error('Failed to generate plan:', error);
+    hideLoadingState();
     alert(`Failed to generate plan: ${error.message}`);
   }
 }
@@ -659,6 +742,8 @@ window.PlanProof = {
   resetRepairLog,
   renderTimeline,
   resetTimeline,
+  showLoadingState,
+  hideLoadingState,
   generatePlan,
   formatTime,
 };
