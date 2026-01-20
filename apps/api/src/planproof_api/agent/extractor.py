@@ -15,6 +15,29 @@ _SYSTEM_PROMPT = (
 
 _PROJECT_PREFIX = re.compile(r"^\s*project\s+", re.IGNORECASE)
 _PROJECT_SUFFIX = re.compile(r"\s+project\s*$", re.IGNORECASE)
+# Generic nouns that should not be treated as standalone entities.
+# Keep this list tight to avoid suppressing real names.
+_GENERIC_ENTITY_WORDS = {
+    "project",
+    "initiative",
+    "task",
+    "plan",
+    "work",
+    "assignment",
+    "deliverable",
+    "meeting",
+    "call",
+    "email",
+    "report",
+    "document",
+    "notes",
+    "invoice",
+    "calendar",
+    "errand",
+    "groceries",
+    "milk",
+    "laundry",
+}
 
 
 def _normalize_entities(entities: list[str]) -> list[str]:
@@ -25,7 +48,9 @@ def _normalize_entities(entities: list[str]) -> list[str]:
         if not entity:
             continue
         base = entity.strip()
-        if base and base not in seen:
+        if not base:
+            continue
+        if base.lower() not in _GENERIC_ENTITY_WORDS and base not in seen:
             normalized.append(base)
             seen.add(base)
 
@@ -33,7 +58,11 @@ def _normalize_entities(entities: list[str]) -> list[str]:
         without_suffix = _PROJECT_SUFFIX.sub("", base).strip()
 
         for candidate in {without_prefix, without_suffix}:
-            if candidate and candidate.lower() != "project" and candidate not in seen:
+            if (
+                candidate
+                and candidate.lower() not in _GENERIC_ENTITY_WORDS
+                and candidate not in seen
+            ):
                 normalized.append(candidate)
                 seen.add(candidate)
 

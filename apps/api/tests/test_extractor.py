@@ -54,3 +54,21 @@ def test_extract_metadata_live(run_live: bool) -> None:
 
     assert "Bob" in result.ground_truth_entities
     assert "Apollo" in result.ground_truth_entities
+
+
+def test_normalize_entities_variants() -> None:
+    values = [
+        "Apollo project",
+        "project Apollo",
+        "Apollo",
+        "",
+        "project",
+        "  ",
+    ]
+
+    normalized = extractor._normalize_entities(values)
+
+    assert "Apollo project" in normalized
+    assert "project Apollo" in normalized
+    assert "Apollo" in normalized
+    assert "project" not in normalized
