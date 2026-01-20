@@ -49,6 +49,7 @@ class PlanItem(BaseModel):
 
 class ExtractedMetadata(BaseModel):
     detected_constraints: list[StrictStr]
+    ground_truth_entities: list[StrictStr]
     task_keywords: list[StrictStr]
 
 
