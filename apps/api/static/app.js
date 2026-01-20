@@ -63,7 +63,7 @@ function renderStatusBadge(status) {
   if (!badge) return;
 
   // Remove all status classes
-  badge.classList.remove('status-badge--pending', 'status-badge--pass', 'status-badge--fail');
+  badge.classList.remove('status-badge--pending', 'status-badge--pass', 'status-badge--fail', 'status-badge--error');
 
   const icon = badge.querySelector('.status-icon');
   const text = badge.querySelector('.status-text');
@@ -78,6 +78,11 @@ function renderStatusBadge(status) {
       badge.classList.add('status-badge--fail');
       icon.textContent = '✗';
       text.textContent = 'LOGISTICAL CONFLICTS DETECTED';
+      break;
+    case 'error':
+      badge.classList.add('status-badge--error');
+      icon.textContent = '⚠';
+      text.textContent = 'SYSTEM ERROR';
       break;
     case 'pending':
     default:
@@ -509,9 +514,23 @@ function createTimelineItem(item, index) {
   div.className = 'timeline-item';
   div.setAttribute('data-index', index);
 
-  const duration = calculateDuration(item.start_time, item.end_time);
-  const startFormatted = formatTime(item.start_time);
-  const endFormatted = formatTime(item.end_time);
+  // Defensive: handle missing or malformed item (PR 3.2)
+  if (!item || typeof item !== 'object') {
+    div.innerHTML = `
+      <div class="timeline-dot"></div>
+      <div class="timeline-card timeline-card--error">
+        <p class="timeline-task">Invalid task data at position ${index + 1}</p>
+      </div>
+    `;
+    return div;
+  }
+
+  const taskName = item.task || 'Untitled Task';
+  const startTime = item.start_time || null;
+  const endTime = item.end_time || null;
+  const duration = (startTime && endTime) ? calculateDuration(startTime, endTime) : 0;
+  const startFormatted = formatTime(startTime);
+  const endFormatted = formatTime(endTime);
 
   div.innerHTML = `
     <div class="timeline-dot"></div>
@@ -522,7 +541,7 @@ function createTimelineItem(item, index) {
         <span class="time-end mono">${endFormatted}</span>
         <span class="time-duration mono">(${duration} min)</span>
       </div>
-      <h3 class="timeline-task">${escapeHtml(item.task)}</h3>
+      <h3 class="timeline-task">${escapeHtml(taskName)}</h3>
       ${item.why ? `<p class="timeline-why">${escapeHtml(item.why)}</p>` : ''}
     </div>
   `;
@@ -658,6 +677,37 @@ function hideLoadingState() {
 }
 
 // ==========================================================================
+// API Error Display (PR 3.2)
+// ==========================================================================
+
+/**
+ * Displays a user-friendly API error in the sidebar.
+ * @param {string} message - Error message to display
+ */
+function renderApiError(message) {
+  // Set status badge to error state
+  renderStatusBadge('error');
+  
+  // Reset other sections to clean state
+  renderChecklist(null);
+  renderMetricsGrid(null);
+  renderCoverage(null);
+  renderConstraints([]);
+  renderRepairLog(null);
+  
+  // Show error in errors section
+  const friendlyMessage = message.includes('500') 
+    ? 'The planning service encountered an internal error. Please try again later.'
+    : message.includes('404')
+    ? 'The planning service is not available. Please check your connection.'
+    : message.includes('NetworkError') || message.includes('fetch')
+    ? 'Unable to reach the planning service. Please check your internet connection.'
+    : `Planning failed: ${message}`;
+  
+  renderErrors([friendlyMessage]);
+}
+
+// ==========================================================================
 // API Integration (PR 1.3)
 // ==========================================================================
 
@@ -719,7 +769,12 @@ async function generatePlan() {
   } catch (error) {
     console.error('Failed to generate plan:', error);
     hideLoadingState();
-    alert(`Failed to generate plan: ${error.message}`);
+    
+    // Show friendly error in sidebar (PR 3.2)
+    renderApiError(error.message);
+    
+    // Reset timeline to empty state
+    resetTimeline();
   }
 }
 
@@ -744,6 +799,7 @@ window.PlanProof = {
   resetTimeline,
   showLoadingState,
   hideLoadingState,
+  renderApiError,
   generatePlan,
   formatTime,
 };
