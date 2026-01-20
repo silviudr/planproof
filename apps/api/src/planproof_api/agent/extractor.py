@@ -6,6 +6,7 @@ import re
 from openai import OpenAI
 
 from planproof_api.agent.schemas import ExtractedMetadata
+from planproof_api.observability.opik import opik
 
 _SYSTEM_PROMPT = (
     "You are a strict JSON extractor. Return ONLY valid JSON with keys: "
@@ -69,6 +70,7 @@ def _normalize_entities(entities: list[str]) -> list[str]:
     return normalized
 
 
+@opik.track
 def extract_metadata(context: str) -> ExtractedMetadata:
     client = OpenAI()
     response = client.chat.completions.create(
