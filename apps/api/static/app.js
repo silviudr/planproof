@@ -170,14 +170,18 @@ function renderChecklist(metrics) {
 /**
  * Renders the errors list in the sidebar.
  * @param {string[]} errors - Array of error messages
+ * @param {boolean} isPriority - Whether to show errors in priority/alert mode (PR 3.3)
  */
-function renderErrors(errors) {
+function renderErrors(errors, isPriority = false) {
   const section = elements.errorsSection;
   const list = elements.errorsList;
   if (!section || !list) return;
 
   // Clear existing errors
   list.innerHTML = '';
+  
+  // Remove priority state by default
+  section.classList.remove('errors-section--priority');
 
   if (!errors || errors.length === 0) {
     section.classList.add('errors-section--hidden');
@@ -186,6 +190,11 @@ function renderErrors(errors) {
 
   // Show section and populate errors
   section.classList.remove('errors-section--hidden');
+  
+  // Add priority styling when validation fails (PR 3.3)
+  if (isPriority) {
+    section.classList.add('errors-section--priority');
+  }
 
   errors.forEach((error) => {
     const li = document.createElement('li');
@@ -453,8 +462,9 @@ function renderValidation(validation) {
   const recallScore = validation.metrics?.keyword_recall_score ?? null;
   renderCoverage(recallScore);
 
-  // Render errors
-  renderErrors(validation.errors || []);
+  // Render errors with priority highlighting if failed (PR 3.3)
+  const isFailed = status === 'fail';
+  renderErrors(validation.errors || [], isFailed);
 }
 
 /**
@@ -531,6 +541,15 @@ function createTimelineItem(item, index) {
   const duration = (startTime && endTime) ? calculateDuration(startTime, endTime) : 0;
   const startFormatted = formatTime(startTime);
   const endFormatted = formatTime(endTime);
+  
+  // Human feasibility warning (PR 3.3) - advisory, not a hard fail
+  const feasibilityFlag = item.human_feasibility_flag || null;
+  const warningHtml = feasibilityFlag ? `
+    <div class="timeline-warning">
+      <span class="warning-icon">⚠️</span>
+      <span class="warning-text">${escapeHtml(feasibilityFlag)}</span>
+    </div>
+  ` : '';
 
   div.innerHTML = `
     <div class="timeline-dot"></div>
@@ -543,6 +562,7 @@ function createTimelineItem(item, index) {
       </div>
       <h3 class="timeline-task">${escapeHtml(taskName)}</h3>
       ${item.why ? `<p class="timeline-why">${escapeHtml(item.why)}</p>` : ''}
+      ${warningHtml}
     </div>
   `;
 
@@ -564,23 +584,38 @@ function escapeHtml(text) {
 /**
  * Renders the plan timeline with task items.
  * @param {Array|null} plan - Array of plan items from API response
+ * @param {boolean} isRejected - Whether the plan failed validation (PR 3.3)
  */
-function renderTimeline(plan) {
+function renderTimeline(plan, isRejected = false) {
   const container = elements.timelineContainer;
   const countEl = elements.planCount;
   if (!container) return;
 
-  // Clear existing content
+  // Clear existing content but preserve watermark structure
   container.innerHTML = '';
+  
+  // Add rejected watermark (always present, visibility controlled by CSS)
+  const watermark = document.createElement('div');
+  watermark.className = 'rejected-watermark';
+  watermark.textContent = 'REJECTED';
+  container.appendChild(watermark);
+  
+  // Apply or remove rejected state (PR 3.3)
+  if (isRejected) {
+    container.classList.add('timeline--rejected');
+  } else {
+    container.classList.remove('timeline--rejected');
+  }
 
   if (!plan || plan.length === 0) {
     // Show empty state
-    container.innerHTML = `
-      <div class="timeline-empty">
-        <p class="empty-message">No plan generated yet.</p>
-        <p class="empty-hint">Enter your context and click "Generate Plan"</p>
-      </div>
+    const emptyDiv = document.createElement('div');
+    emptyDiv.className = 'timeline-empty';
+    emptyDiv.innerHTML = `
+      <p class="empty-message">No plan generated yet.</p>
+      <p class="empty-hint">Enter your context and click "Generate Plan"</p>
     `;
+    container.appendChild(emptyDiv);
     if (countEl) countEl.textContent = '0 tasks';
     return;
   }
@@ -593,7 +628,8 @@ function renderTimeline(plan) {
 
   // Update task count
   if (countEl) {
-    countEl.textContent = `${plan.length} task${plan.length !== 1 ? 's' : ''}`;
+    const label = isRejected ? 'draft tasks' : 'tasks';
+    countEl.textContent = `${plan.length} ${plan.length !== 1 ? label : label.replace('s', '')}`;
   }
 }
 
@@ -752,8 +788,11 @@ async function generatePlan() {
 
     const data = await response.json();
 
+    // Determine if plan is rejected (PR 3.3)
+    const isRejected = data.validation?.status === 'fail';
+    
     // Render the response
-    renderTimeline(data.plan || []);
+    renderTimeline(data.plan || [], isRejected);
     renderValidation(data.validation || null);
     
     // Render extracted metadata (PR 2.1)
