@@ -42,6 +42,7 @@ def create_plan(request: PlanRequest) -> PlanResponse:
         ],
         extracted_metadata={
             "detected_constraints": ["Client check-in at 1 PM"],
+            "ground_truth_entities": ["Client", "Inbox Project"],
             "task_keywords": ["inbox", "project update", "client call"],
         },
         assumptions=[

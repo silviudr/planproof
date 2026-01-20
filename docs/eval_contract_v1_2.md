@@ -48,7 +48,8 @@ Generate a daily plan that is:
   ],
   "extracted_metadata": {
     "detected_constraints": ["string"],
-    "task_keywords": ["string"]
+    "task_keywords": ["string"],
+    "ground_truth_entities": ["string"]
   },
 
   "assumptions": ["string"],
