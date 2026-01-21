@@ -70,7 +70,7 @@ def _normalize_entities(entities: list[str]) -> list[str]:
     return normalized
 
 
-@opik.track
+@opik.track(name="extract_metadata")
 def extract_metadata(context: str) -> ExtractedMetadata:
     client = OpenAI()
     response = client.chat.completions.create(
