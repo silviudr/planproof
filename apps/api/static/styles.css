@@ -886,7 +886,7 @@ body {
 }
 
 /* Single column when only one callout visible */
-.insights-header:has(.insight-callout--hidden):not(:has(.insight-callout:not(.insight-callout--hidden) ~ .insight-callout:not(.insight-callout--hidden))) {
+.insights-header--single-column {
   grid-template-columns: 1fr;
 }
 

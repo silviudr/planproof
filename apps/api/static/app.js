@@ -445,8 +445,8 @@ function resetRepairLog() {
 // ==========================================================================
 
 /**
- * Updates the visibility of the insights header based on whether
- * assumptions or questions are visible.
+ * Updates the visibility and layout of the insights header based on
+ * whether assumptions or questions are visible.
  */
 function updateInsightsHeaderVisibility() {
   const header = elements.insightsHeader;
@@ -458,10 +458,18 @@ function updateInsightsHeaderVisibility() {
   const assumptionsVisible = assumptions && !assumptions.classList.contains('insight-callout--hidden');
   const questionsVisible = questions && !questions.classList.contains('insight-callout--hidden');
   
+  // Show/hide header
   if (assumptionsVisible || questionsVisible) {
     header.classList.remove('insights-header--hidden');
   } else {
     header.classList.add('insights-header--hidden');
+  }
+  
+  // Single column when only one callout visible
+  if ((assumptionsVisible && !questionsVisible) || (!assumptionsVisible && questionsVisible)) {
+    header.classList.add('insights-header--single-column');
+  } else {
+    header.classList.remove('insights-header--single-column');
   }
 }
 
