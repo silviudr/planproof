@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 from fastapi import APIRouter
 
 from dateutil.parser import isoparse
@@ -37,11 +39,17 @@ def _derive_confidence(validation: PlanValidation) -> str:
     return "medium"
 
 
+def _format_plan(plan: list[PlanItem]) -> str:
+    return json.dumps([item.model_dump() for item in plan], indent=2)
+
+
 @opik.track(name="validate_plan")
 def _validate_plan(
     plan: list[PlanItem], metadata: ExtractedMetadata, current_time: str
 ) -> PlanValidation:
     """Validate a generated plan using deterministic checks.
+
+    This is the "Validation" step of the Sandwich Architecture.
 
     Args:
         plan: Generated plan items to validate.
@@ -99,6 +107,27 @@ def _validate_plan(
     return PlanValidation(status=status, metrics=metrics, errors=errors)
 
 
+@opik.track(name="repair_plan")
+def _repair_plan(
+    request: PlanRequest, metadata: ExtractedMetadata, failed_plan: list[PlanItem], errors: list[str]
+) -> tuple[list[PlanItem], list[str], list[str]]:
+    repair_prompt = (
+        "Original context:\n"
+        f"{request.context}\n\n"
+        "Failed plan:\n"
+        f"{_format_plan(failed_plan)}\n\n"
+        "Validation errors:\n"
+        f"{json.dumps(errors, indent=2)}"
+    )
+    return generate_plan(
+        request.context,
+        metadata,
+        request.current_time,
+        request.timezone,
+        repair_prompt=repair_prompt,
+    )
+
+
 @router.post("/api/plan", response_model=PlanResponse)
 def create_plan(request: PlanRequest) -> PlanResponse:
     metadata = extract_metadata(request.context)
@@ -133,6 +162,29 @@ def create_plan(request: PlanRequest) -> PlanResponse:
         )
 
     validation = _validate_plan(plan, metadata, request.current_time)
+    repair_attempted = False
+    repair_success = False
+
+    if validation.status == "fail":
+        repair_attempted = True
+        try:
+            plan, assumptions, questions = _repair_plan(
+                request, metadata, plan, validation.errors
+            )
+            validation = _validate_plan(plan, metadata, request.current_time)
+            repair_success = validation.status == "pass"
+        except PlanGenerationError as exc:
+            validation = PlanValidation(
+                status="fail",
+                metrics=ValidationMetrics(
+                    constraint_violation_count=0,
+                    overlap_minutes=0,
+                    hallucination_count=0,
+                    keyword_recall_score=0.0,
+                    human_feasibility_flags=0,
+                ),
+                errors=[str(exc)],
+            )
 
     return PlanResponse(
         plan=plan,
@@ -142,8 +194,8 @@ def create_plan(request: PlanRequest) -> PlanResponse:
         confidence=_derive_confidence(validation),
         validation=validation,
         debug=DebugInfo(
-            repair_attempted=False,
-            repair_success=False,
+            repair_attempted=repair_attempted,
+            repair_success=repair_success,
             variant=request.variant,
         ),
     )

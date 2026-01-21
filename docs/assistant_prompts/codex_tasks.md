@@ -48,7 +48,7 @@ The implementation must conform to:
 ## Phase 3 — Agent: The Sandwich Pipeline
 
 - [X] **PR 3.1:** Implement the "Extractor" logic (LLM call to parse constraints and keywords).
-- [ ] **PR 3.2:** Wire the Validator to run after the Planner and populate `validation.status` and `errors`.
+- [X] **PR 3.2:** Wire the Validator to run after the Planner and populate `validation.status` and `errors`.
 - [ ] **PR 3.3:** Implement the 1-shot "Repair Attempt" logic (if FAIL, retry once with errors in prompt).
 
 ## Phase 4 — Observability
