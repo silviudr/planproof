@@ -11,6 +11,7 @@ from eval.feasibility import check_feasibility
 from eval.hallucination import check_hallucinations
 from eval.recall import calculate_recall
 from eval.time_math import calculate_overlaps
+from opik import opik_context
 from planproof_api.agent.extractor import extract_metadata
 from planproof_api.agent.planner import PlanGenerationError, generate_plan
 from planproof_api.agent.schemas import (
@@ -43,7 +44,19 @@ def _format_plan(plan: list[PlanItem]) -> str:
     return json.dumps([item.model_dump() for item in plan], indent=2)
 
 
-@opik.track(name="validate_plan")
+@opik.track(name="initial_planning_step")
+def _initial_planning_step(
+    request: PlanRequest, metadata: ExtractedMetadata
+) -> tuple[list[PlanItem], list[str], list[str]]:
+    return generate_plan(
+        request.context,
+        metadata,
+        request.current_time,
+        request.timezone,
+    )
+
+
+@opik.track(name="validation_step")
 def _validate_plan(
     plan: list[PlanItem], metadata: ExtractedMetadata, current_time: str
 ) -> PlanValidation:
@@ -104,10 +117,22 @@ def _validate_plan(
         keyword_recall_score=keyword_recall_score,
         human_feasibility_flags=human_feasibility_flags,
     )
+    try:
+        opik_context.update_current_span(
+            metadata={
+                "constraint_violation_count": constraint_violation_count,
+                "overlap_minutes": overlap_minutes,
+                "hallucination_count": hallucination_count,
+                "keyword_recall_score": keyword_recall_score,
+                "human_feasibility_flags": human_feasibility_flags,
+            }
+        )
+    except Exception:
+        pass
     return PlanValidation(status=status, metrics=metrics, errors=errors)
 
 
-@opik.track(name="repair_plan")
+@opik.track(name="repair_step")
 def _repair_plan(
     request: PlanRequest, metadata: ExtractedMetadata, failed_plan: list[PlanItem], errors: list[str]
 ) -> tuple[list[PlanItem], list[str], list[str]]:
@@ -129,12 +154,16 @@ def _repair_plan(
 
 
 @router.post("/api/plan", response_model=PlanResponse)
+@opik.track(name="plan_request")
 def create_plan(request: PlanRequest) -> PlanResponse:
+    try:
+        opik_context.update_current_trace(metadata={"variant": request.variant})
+    except Exception:
+        pass
+
     metadata = extract_metadata(request.context)
     try:
-        plan, assumptions, questions = generate_plan(
-            request.context, metadata, request.current_time, request.timezone
-        )
+        plan, assumptions, questions = _initial_planning_step(request, metadata)
     except PlanGenerationError as exc:
         validation = PlanValidation(
             status="fail",

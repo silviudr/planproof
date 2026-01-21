@@ -1,7 +1,7 @@
 import os
 
 if "OPIK_PROJECT_NAME" not in os.environ:
-    os.environ["OPIK_PROJECT_NAME"] = "Hackaton"
+    os.environ["OPIK_PROJECT_NAME"] = "PlanProof"
 
 try:
     import opik as _opik  # type: ignore

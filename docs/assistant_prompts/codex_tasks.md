@@ -42,18 +42,18 @@ The implementation must conform to:
 
 - [X] **PR 2.1:** Implement `eval/time_math.py` to detect overlaps between `start_time` and `end_time`.
 - [X] **PR 2.2:** Implement `eval/hallucination.py` for Proper Noun matching between context and plan.
-- [ ] **PR 2.3:** Implement `eval/recall.py` for Keyword Recall score calculation (deterministic string match).
+- [X] **PR 2.3:** Implement `eval/recall.py` for Keyword Recall score calculation (deterministic string match).
 - [X] **PR 2.4:** Add unit tests for all validators in `apps/api/tests/`.
 
 ## Phase 3 — Agent: The Sandwich Pipeline
 
 - [X] **PR 3.1:** Implement the "Extractor" logic (LLM call to parse constraints and keywords).
 - [X] **PR 3.2:** Wire the Validator to run after the Planner and populate `validation.status` and `errors`.
-- [ ] **PR 3.3:** Implement the 1-shot "Repair Attempt" logic (if FAIL, retry once with errors in prompt).
+- [X] **PR 3.3:** Implement the 1-shot "Repair Attempt" logic (if FAIL, retry once with errors in prompt).
 
 ## Phase 4 — Observability
 
-- [ ] **PR 4.1:** Integrate Opik tracing hooks for each step (Extract -> Plan -> Validate -> Repair).
+- [X] **PR 4.1:** Integrate Opik tracing hooks for each step (Extract -> Plan -> Validate -> Repair).
 - [ ] **PR 4.2:** Ensure `validation.metrics` are logged as properties in the Opik trace.
 
 ---

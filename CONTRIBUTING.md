@@ -198,8 +198,8 @@ PlanProof values correctness over persuasion.
 - [X] PR 2.4: Validator Unit Tests
 - [X] PR 3.1: Metadata Extractor
 - [x] PR 3.2: Validation Wiring
-- [ ] PR 3.3: 1-Shot Repair Loop
-- [ ] PR 4.1: Opik Trace Scaffolding
+- [X] PR 3.3: 1-Shot Repair Loop
+- [X] PR 4.1: Opik Trace Scaffolding
 - [ ] PR 4.2: Opik Metrics Integration
 
 ## Infrastructure
