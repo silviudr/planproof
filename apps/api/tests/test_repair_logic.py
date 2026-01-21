@@ -52,3 +52,61 @@ def test_repair_loop_success() -> None:
     assert response.debug.repair_success is True
     assert mock_generate.call_count == 2
     assert "repair_prompt" in mock_generate.call_args_list[1].kwargs
+
+
+def test_repair_loop_not_needed() -> None:
+    request = PlanRequest(
+        context="Plan my day with Alpha.",
+        current_time="2025-01-18T08:00:00-05:00",
+        timezone="America/New_York",
+        variant="v3_agentic_repair",
+    )
+    metadata = ExtractedMetadata(
+        detected_constraints=[],
+        ground_truth_entities=["alpha"],
+        task_keywords=["alpha"],
+    )
+    passing_plan = [
+        _item("Alpha", "2025-01-18T09:00:00-05:00", "2025-01-18T10:00:00-05:00", 60),
+    ]
+
+    with patch("planproof_api.routes.extract_metadata", return_value=metadata), patch(
+        "planproof_api.routes.generate_plan", return_value=(passing_plan, [], [])
+    ) as mock_generate:
+        response = create_plan(request)
+
+    assert response.debug.repair_attempted is False
+    assert response.debug.repair_success is False
+    assert mock_generate.call_count == 1
+
+
+def test_repair_loop_failure() -> None:
+    request = PlanRequest(
+        context="Plan my day with Alpha and Beta.",
+        current_time="2025-01-18T08:00:00-05:00",
+        timezone="America/New_York",
+        variant="v3_agentic_repair",
+    )
+    metadata = ExtractedMetadata(
+        detected_constraints=[],
+        ground_truth_entities=["alpha", "beta"],
+        task_keywords=["alpha", "beta"],
+    )
+    failing_plan = [
+        _item("Alpha", "2025-01-18T09:00:00-05:00", "2025-01-18T10:00:00-05:00", 60),
+        _item("Beta", "2025-01-18T09:30:00-05:00", "2025-01-18T10:30:00-05:00", 60),
+    ]
+
+    with patch("planproof_api.routes.extract_metadata", return_value=metadata), patch(
+        "planproof_api.routes.generate_plan"
+    ) as mock_generate:
+        mock_generate.side_effect = [
+            (failing_plan, [], []),
+            (failing_plan, [], []),
+        ]
+
+        response = create_plan(request)
+
+    assert response.debug.repair_attempted is True
+    assert response.debug.repair_success is False
+    assert mock_generate.call_count == 2
