@@ -41,7 +41,8 @@ const elements = {
   repairSection: document.getElementById('repair-section'),
   repairStatus: document.getElementById('repair-status'),
   
-  // Assumptions & Questions (PR 3.4)
+  // Insights Header: Assumptions & Questions (PR 3.4 Revised)
+  insightsHeader: document.getElementById('insights-header'),
   assumptionsSection: document.getElementById('assumptions-section'),
   assumptionsList: document.getElementById('assumptions-list'),
   questionsSection: document.getElementById('questions-section'),
@@ -444,7 +445,28 @@ function resetRepairLog() {
 // ==========================================================================
 
 /**
- * Renders the assumptions list as insight items.
+ * Updates the visibility of the insights header based on whether
+ * assumptions or questions are visible.
+ */
+function updateInsightsHeaderVisibility() {
+  const header = elements.insightsHeader;
+  const assumptions = elements.assumptionsSection;
+  const questions = elements.questionsSection;
+  
+  if (!header) return;
+  
+  const assumptionsVisible = assumptions && !assumptions.classList.contains('insight-callout--hidden');
+  const questionsVisible = questions && !questions.classList.contains('insight-callout--hidden');
+  
+  if (assumptionsVisible || questionsVisible) {
+    header.classList.remove('insights-header--hidden');
+  } else {
+    header.classList.add('insights-header--hidden');
+  }
+}
+
+/**
+ * Renders the assumptions list as insight callout items.
  * Hides section if array is empty (defensive rendering).
  * @param {string[]|null} assumptions - Array of assumption strings
  */
@@ -458,23 +480,26 @@ function renderAssumptions(assumptions) {
 
   // Hide if empty or null
   if (!assumptions || assumptions.length === 0) {
-    section.classList.add('insight-section--hidden');
+    section.classList.add('insight-callout--hidden');
+    updateInsightsHeaderVisibility();
     return;
   }
 
   // Show section and render items
-  section.classList.remove('insight-section--hidden');
+  section.classList.remove('insight-callout--hidden');
 
   assumptions.forEach((assumption) => {
     const li = document.createElement('li');
-    li.className = 'insight-item';
+    li.className = 'callout-item';
     li.textContent = assumption;
     list.appendChild(li);
   });
+  
+  updateInsightsHeaderVisibility();
 }
 
 /**
- * Renders the questions list as insight items.
+ * Renders the questions list as insight callout items.
  * Hides section if array is empty (defensive rendering).
  * @param {string[]|null} questions - Array of question strings
  */
@@ -488,19 +513,22 @@ function renderQuestions(questions) {
 
   // Hide if empty or null
   if (!questions || questions.length === 0) {
-    section.classList.add('insight-section--hidden');
+    section.classList.add('insight-callout--hidden');
+    updateInsightsHeaderVisibility();
     return;
   }
 
   // Show section and render items
-  section.classList.remove('insight-section--hidden');
+  section.classList.remove('insight-callout--hidden');
 
   questions.forEach((question) => {
     const li = document.createElement('li');
-    li.className = 'insight-item';
+    li.className = 'callout-item';
     li.textContent = question;
     list.appendChild(li);
   });
+  
+  updateInsightsHeaderVisibility();
 }
 
 /**
