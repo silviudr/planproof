@@ -44,7 +44,7 @@ You are Claude working as a coding assistant in VS Code.
 - [X] **PR 3.2:** Implement defensive rendering (prevent crashes if `metrics` or `plan` fields are missing).
 - [X] **PR 3.3:** Apply "Rejected" styling (gray/muted) to plans where `validation.status == "fail"`.
 - [X] **PR 3.4:** Assumptions & Questions (Show the AI's "Why").
-- [ ] **PR 4.1:** Opik Trace Link (Show the "View Trace" button for the judges).
+- [X] **PR 4.1:** Opik Trace Link (Show the "View Trace" button for the judges).
 
 
 ---

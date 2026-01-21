@@ -55,6 +55,10 @@ const elements = {
   // Errors
   errorsSection: document.getElementById('errors-section'),
   errorsList: document.getElementById('errors-list'),
+  
+  // Opik Trace Link (PR 4.1)
+  traceSection: document.getElementById('trace-section'),
+  traceLink: document.getElementById('trace-link'),
 };
 
 // ==========================================================================
@@ -209,6 +213,33 @@ function renderErrors(errors, isPriority = false) {
     li.textContent = error;
     list.appendChild(li);
   });
+}
+
+// ==========================================================================
+// Opik Trace Link (PR 4.1)
+// ==========================================================================
+
+/**
+ * Shows or hides the Opik trace link section.
+ * @param {boolean} visible - Whether to show the trace link
+ * @param {string|null} traceUrl - Optional custom trace URL
+ */
+function renderTraceLink(visible, traceUrl = null) {
+  const section = elements.traceSection;
+  const link = elements.traceLink;
+  if (!section) return;
+
+  if (!visible) {
+    section.classList.add('trace-section--hidden');
+    return;
+  }
+
+  section.classList.remove('trace-section--hidden');
+  
+  // Update URL if provided (for future per-trace linking)
+  if (traceUrl && link) {
+    link.href = traceUrl;
+  }
 }
 
 // ==========================================================================
@@ -558,6 +589,7 @@ function renderValidation(validation) {
     renderMetricsGrid(null);
     renderCoverage(null);
     renderErrors([]);
+    renderTraceLink(false);
     return;
   }
 
@@ -579,6 +611,9 @@ function renderValidation(validation) {
   // Render errors with priority highlighting if failed (PR 3.3)
   const isFailed = status === 'fail';
   renderErrors(validation.errors || [], isFailed);
+  
+  // Show trace link after validation is rendered (PR 4.1)
+  renderTraceLink(true);
 }
 
 /**
@@ -964,6 +999,7 @@ window.PlanProof = {
   showLoadingState,
   hideLoadingState,
   renderApiError,
+  renderTraceLink,
   generatePlan,
   formatTime,
 };
