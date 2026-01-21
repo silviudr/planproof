@@ -872,6 +872,86 @@ body {
 }
 
 /* --------------------------------------------------------------------------
+   Insight Cards - Assumptions & Questions (PR 3.4)
+   -------------------------------------------------------------------------- */
+.insight-section {
+  margin-top: var(--space-lg);
+}
+
+.insight-section--hidden {
+  display: none;
+}
+
+.insight-card {
+  background-color: rgba(139, 92, 246, 0.06);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-left: 3px solid var(--color-accent-violet);
+  border-radius: var(--radius-sm);
+  padding: var(--space-md);
+}
+
+.insight-card--assumptions {
+  background-color: rgba(139, 92, 246, 0.06);
+  border-color: rgba(139, 92, 246, 0.2);
+  border-left-color: var(--color-accent-violet);
+}
+
+.insight-card--questions {
+  background-color: rgba(14, 165, 233, 0.06);
+  border-color: rgba(14, 165, 233, 0.2);
+  border-left-color: var(--color-accent-sky);
+}
+
+.insight-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+}
+
+.insight-icon {
+  font-size: 0.875rem;
+}
+
+.insight-title {
+  font-family: var(--font-human);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.insight-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.insight-item {
+  font-family: var(--font-human);
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+  padding: var(--space-xs) 0;
+  padding-left: var(--space-md);
+  position: relative;
+}
+
+.insight-item::before {
+  content: '→';
+  position: absolute;
+  left: 0;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+}
+
+.insight-card--questions .insight-item::before {
+  content: '?';
+  color: var(--color-accent-sky);
+  font-weight: 600;
+}
+
+/* --------------------------------------------------------------------------
    Errors Section
    -------------------------------------------------------------------------- */
 .errors-section {

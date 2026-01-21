@@ -41,6 +41,12 @@ const elements = {
   repairSection: document.getElementById('repair-section'),
   repairStatus: document.getElementById('repair-status'),
   
+  // Assumptions & Questions (PR 3.4)
+  assumptionsSection: document.getElementById('assumptions-section'),
+  assumptionsList: document.getElementById('assumptions-list'),
+  questionsSection: document.getElementById('questions-section'),
+  questionsList: document.getElementById('questions-list'),
+  
   // Loading State (PR 3.1)
   timelineLoading: document.getElementById('timeline-loading'),
   loadingMessage: document.getElementById('loading-message'),
@@ -433,6 +439,78 @@ function resetRepairLog() {
   }
 }
 
+// ==========================================================================
+// Assumptions & Questions Rendering (PR 3.4)
+// ==========================================================================
+
+/**
+ * Renders the assumptions list as insight items.
+ * Hides section if array is empty (defensive rendering).
+ * @param {string[]|null} assumptions - Array of assumption strings
+ */
+function renderAssumptions(assumptions) {
+  const section = elements.assumptionsSection;
+  const list = elements.assumptionsList;
+  if (!section || !list) return;
+
+  // Clear existing items
+  list.innerHTML = '';
+
+  // Hide if empty or null
+  if (!assumptions || assumptions.length === 0) {
+    section.classList.add('insight-section--hidden');
+    return;
+  }
+
+  // Show section and render items
+  section.classList.remove('insight-section--hidden');
+
+  assumptions.forEach((assumption) => {
+    const li = document.createElement('li');
+    li.className = 'insight-item';
+    li.textContent = assumption;
+    list.appendChild(li);
+  });
+}
+
+/**
+ * Renders the questions list as insight items.
+ * Hides section if array is empty (defensive rendering).
+ * @param {string[]|null} questions - Array of question strings
+ */
+function renderQuestions(questions) {
+  const section = elements.questionsSection;
+  const list = elements.questionsList;
+  if (!section || !list) return;
+
+  // Clear existing items
+  list.innerHTML = '';
+
+  // Hide if empty or null
+  if (!questions || questions.length === 0) {
+    section.classList.add('insight-section--hidden');
+    return;
+  }
+
+  // Show section and render items
+  section.classList.remove('insight-section--hidden');
+
+  questions.forEach((question) => {
+    const li = document.createElement('li');
+    li.className = 'insight-item';
+    li.textContent = question;
+    list.appendChild(li);
+  });
+}
+
+/**
+ * Resets both assumptions and questions to hidden state.
+ */
+function resetInsights() {
+  renderAssumptions(null);
+  renderQuestions(null);
+}
+
 /**
  * Renders the full validation state (status badge, checklist, metrics grid, coverage, errors).
  * @param {Object|null} validation - The validation object from API response
@@ -806,6 +884,10 @@ async function generatePlan() {
     // Render repair log (PR 2.3)
     renderRepairLog(data.debug || null);
     
+    // Render assumptions & questions (PR 3.4)
+    renderAssumptions(data.assumptions || null);
+    renderQuestions(data.questions || null);
+    
     // Hide loading state (PR 3.1)
     hideLoadingState();
 
@@ -838,6 +920,9 @@ window.PlanProof = {
   resetCoverage,
   renderRepairLog,
   resetRepairLog,
+  renderAssumptions,
+  renderQuestions,
+  resetInsights,
   renderTimeline,
   resetTimeline,
   showLoadingState,
@@ -857,6 +942,7 @@ document.addEventListener('DOMContentLoaded', () => {
   resetConstraints();
   resetCoverage();
   resetRepairLog();
+  resetInsights();
 
   // Set default current time to now
   const currentTimeInput = elements.currentTime;
