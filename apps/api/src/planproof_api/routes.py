@@ -2,70 +2,115 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 
+from eval.hallucination import check_hallucinations
+from eval.recall import calculate_recall
+from eval.time_math import calculate_overlaps
+from planproof_api.agent.extractor import extract_metadata
+from planproof_api.agent.planner import PlanGenerationError, generate_plan
 from planproof_api.agent.schemas import (
     DebugInfo,
+    ExtractedMetadata,
     PlanItem,
     PlanRequest,
     PlanResponse,
     PlanValidation,
     ValidationMetrics,
 )
+from planproof_api.observability.opik import opik
 
 router = APIRouter()
 
 
+def _derive_confidence(validation: PlanValidation) -> str:
+    if validation.status == "fail":
+        return "low"
+    if (
+        validation.metrics.keyword_recall_score >= 0.85
+        and validation.metrics.hallucination_count == 0
+        and validation.metrics.overlap_minutes == 0
+    ):
+        return "high"
+    return "medium"
+
+
+@opik.track
+def _validate_plan(
+    plan: list[PlanItem], metadata: ExtractedMetadata
+) -> PlanValidation:
+    # TODO: PR 3.2.1 - compute constraint_violation_count deterministically.
+    constraint_violation_count = 0
+    overlap_minutes = calculate_overlaps(plan)
+    hallucination_count = check_hallucinations(
+        plan, metadata.ground_truth_entities, metadata.task_keywords
+    )
+    keyword_recall_score = calculate_recall(plan, metadata.task_keywords)
+    # TODO: PR 3.2.1 - compute human_feasibility_flags deterministically.
+    human_feasibility_flags = 0
+
+    errors: list[str] = []
+    if constraint_violation_count > 0:
+        errors.append("constraint_violation_count > 0")
+    if overlap_minutes > 0:
+        errors.append("overlap_minutes > 0")
+    if hallucination_count > 0:
+        errors.append("hallucination_count > 0")
+    if keyword_recall_score < 0.7:
+        errors.append("keyword_recall_score < 0.7")
+
+    status = "pass" if not errors else "fail"
+    metrics = ValidationMetrics(
+        constraint_violation_count=constraint_violation_count,
+        overlap_minutes=overlap_minutes,
+        hallucination_count=hallucination_count,
+        keyword_recall_score=keyword_recall_score,
+        human_feasibility_flags=human_feasibility_flags,
+    )
+    return PlanValidation(status=status, metrics=metrics, errors=errors)
+
+
 @router.post("/api/plan", response_model=PlanResponse)
 def create_plan(request: PlanRequest) -> PlanResponse:
-    return PlanResponse(
-        plan=[
-            PlanItem(
-                task="Review inbox",
-                start_time="2025-01-18T09:00:00-05:00",
-                end_time="2025-01-18T09:30:00-05:00",
-                timebox_minutes=30,
-                why="Quick triage to prioritize the day.",
-            ),
-            PlanItem(
-                task="Write project update",
-                start_time="2025-01-18T09:45:00-05:00",
-                end_time="2025-01-18T11:15:00-05:00",
-                timebox_minutes=90,
-                why="Draft and polish the weekly update.",
-            ),
-            PlanItem(
-                task="Client check-in call",
-                start_time="2025-01-18T13:00:00-05:00",
-                end_time="2025-01-18T13:30:00-05:00",
-                timebox_minutes=30,
-                why="Confirm next steps and deliverables.",
-            ),
-        ],
-        extracted_metadata={
-            "detected_constraints": ["Client check-in at 1 PM"],
-            "ground_truth_entities": ["Client", "Inbox Project"],
-            "task_keywords": ["inbox", "project update", "client call"],
-        },
-        assumptions=[
-            "Workday starts at 9 AM.",
-        ],
-        questions=[
-            "Any additional meetings to schedule?",
-        ],
-        confidence="medium",
-        validation=PlanValidation(
-            status="pass",
+    metadata = extract_metadata(request.context)
+    try:
+        plan = generate_plan(request.context, metadata)
+    except PlanGenerationError as exc:
+        validation = PlanValidation(
+            status="fail",
             metrics=ValidationMetrics(
-                constraint_violation_count=1,
-                overlap_minutes=15,
-                hallucination_count=2,
-                keyword_recall_score=0.75,
-                human_feasibility_flags=1,
+                constraint_violation_count=0,
+                overlap_minutes=0,
+                hallucination_count=0,
+                keyword_recall_score=0.0,
+                human_feasibility_flags=0,
             ),
-            errors=[],
-        ),
+            errors=[str(exc)],
+        )
+        return PlanResponse(
+            plan=[],
+            extracted_metadata=metadata,
+            assumptions=[],
+            questions=[],
+            confidence=_derive_confidence(validation),
+            validation=validation,
+            debug=DebugInfo(
+                repair_attempted=False,
+                repair_success=False,
+                variant=request.variant,
+            ),
+        )
+
+    validation = _validate_plan(plan, metadata)
+
+    return PlanResponse(
+        plan=plan,
+        extracted_metadata=metadata,
+        assumptions=[],
+        questions=[],
+        confidence=_derive_confidence(validation),
+        validation=validation,
         debug=DebugInfo(
             repair_attempted=False,
             repair_success=False,
-            variant="v1_naive",
+            variant=request.variant,
         ),
     )
