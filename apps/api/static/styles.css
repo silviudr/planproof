@@ -470,6 +470,8 @@ body {
    Proof Sidebar (Validation)
    -------------------------------------------------------------------------- */
 .proof-sidebar {
+  display: flex;
+  flex-direction: column;
   background-color: var(--color-bg-primary);
   padding: var(--space-xl);
   overflow-y: auto;
@@ -1024,7 +1026,7 @@ body {
 
 .btn-trace:hover {
   color: var(--color-text);
-  border-color: var(--color-accent);
+  border-color: var(--color-accent-violet);
   background-color: rgba(139, 92, 246, 0.1);
 }
 
