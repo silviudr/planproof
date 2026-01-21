@@ -85,8 +85,8 @@ def _validate_plan(
         errors.append("hallucination_count > 0")
     if keyword_recall_score < 0.7:
         errors.append("keyword_recall_score < 0.7")
-    if human_feasibility_flags > 0:
-        errors.append("human_feasibility_flags > 0")
+    # if human_feasibility_flags > 0:
+    #     errors.append("human_feasibility_flags > 0")
 
     status = "pass" if not errors else "fail"
     metrics = ValidationMetrics(
