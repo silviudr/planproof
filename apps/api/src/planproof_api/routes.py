@@ -2,6 +2,10 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 
+from dateutil.parser import isoparse
+
+from eval.constraints import check_constraints
+from eval.feasibility import check_feasibility
 from eval.hallucination import check_hallucinations
 from eval.recall import calculate_recall
 from eval.time_math import calculate_overlaps
@@ -33,21 +37,46 @@ def _derive_confidence(validation: PlanValidation) -> str:
     return "medium"
 
 
-@opik.track
+@opik.track(name="validate_plan")
 def _validate_plan(
-    plan: list[PlanItem], metadata: ExtractedMetadata
+    plan: list[PlanItem], metadata: ExtractedMetadata, current_time: str
 ) -> PlanValidation:
-    # TODO: PR 3.2.1 - compute constraint_violation_count deterministically.
-    constraint_violation_count = 0
+    """Validate a generated plan using deterministic checks.
+
+    Args:
+        plan: Generated plan items to validate.
+        metadata: Extracted metadata used for grounding.
+        current_time: ISO-8601 timestamp representing "now".
+
+    Returns:
+        PlanValidation containing metrics and errors.
+    """
+    constraint_violation_count = check_constraints(
+        plan, metadata.detected_constraints
+    )
     overlap_minutes = calculate_overlaps(plan)
     hallucination_count = check_hallucinations(
         plan, metadata.ground_truth_entities, metadata.task_keywords
     )
     keyword_recall_score = calculate_recall(plan, metadata.task_keywords)
-    # TODO: PR 3.2.1 - compute human_feasibility_flags deterministically.
-    human_feasibility_flags = 0
+    human_feasibility_flags = check_feasibility(plan)
 
     errors: list[str] = []
+    current_dt = isoparse(current_time)
+    for item in plan:
+        start_dt = isoparse(item.start_time)
+        end_dt = isoparse(item.end_time)
+
+        if start_dt < current_dt:
+            constraint_violation_count += 1
+            errors.append(f'Task "{item.task}" starts in the past.')
+
+        duration_minutes = (end_dt - start_dt).total_seconds() / 60
+        if abs(duration_minutes - item.timebox_minutes) > 1:
+            errors.append(
+                f'Task "{item.task}" timebox_minutes mismatch with duration.'
+            )
+
     if constraint_violation_count > 0:
         errors.append("constraint_violation_count > 0")
     if overlap_minutes > 0:
@@ -56,6 +85,8 @@ def _validate_plan(
         errors.append("hallucination_count > 0")
     if keyword_recall_score < 0.7:
         errors.append("keyword_recall_score < 0.7")
+    if human_feasibility_flags > 0:
+        errors.append("human_feasibility_flags > 0")
 
     status = "pass" if not errors else "fail"
     metrics = ValidationMetrics(
@@ -72,7 +103,9 @@ def _validate_plan(
 def create_plan(request: PlanRequest) -> PlanResponse:
     metadata = extract_metadata(request.context)
     try:
-        plan = generate_plan(request.context, metadata)
+        plan, assumptions, questions = generate_plan(
+            request.context, metadata, request.current_time, request.timezone
+        )
     except PlanGenerationError as exc:
         validation = PlanValidation(
             status="fail",
@@ -99,13 +132,13 @@ def create_plan(request: PlanRequest) -> PlanResponse:
             ),
         )
 
-    validation = _validate_plan(plan, metadata)
+    validation = _validate_plan(plan, metadata, request.current_time)
 
     return PlanResponse(
         plan=plan,
         extracted_metadata=metadata,
-        assumptions=[],
-        questions=[],
+        assumptions=assumptions,
+        questions=questions,
         confidence=_derive_confidence(validation),
         validation=validation,
         debug=DebugInfo(
