@@ -41,6 +41,13 @@ const elements = {
   repairSection: document.getElementById('repair-section'),
   repairStatus: document.getElementById('repair-status'),
   
+  // Insights Header: Assumptions & Questions (PR 3.4 Revised)
+  insightsHeader: document.getElementById('insights-header'),
+  assumptionsSection: document.getElementById('assumptions-section'),
+  assumptionsList: document.getElementById('assumptions-list'),
+  questionsSection: document.getElementById('questions-section'),
+  questionsList: document.getElementById('questions-list'),
+  
   // Loading State (PR 3.1)
   timelineLoading: document.getElementById('timeline-loading'),
   loadingMessage: document.getElementById('loading-message'),
@@ -433,6 +440,113 @@ function resetRepairLog() {
   }
 }
 
+// ==========================================================================
+// Assumptions & Questions Rendering (PR 3.4)
+// ==========================================================================
+
+/**
+ * Updates the visibility and layout of the insights header based on
+ * whether assumptions or questions are visible.
+ */
+function updateInsightsHeaderVisibility() {
+  const header = elements.insightsHeader;
+  const assumptions = elements.assumptionsSection;
+  const questions = elements.questionsSection;
+  
+  if (!header) return;
+  
+  const assumptionsVisible = assumptions && !assumptions.classList.contains('insight-callout--hidden');
+  const questionsVisible = questions && !questions.classList.contains('insight-callout--hidden');
+  
+  // Show/hide header
+  if (assumptionsVisible || questionsVisible) {
+    header.classList.remove('insights-header--hidden');
+  } else {
+    header.classList.add('insights-header--hidden');
+  }
+  
+  // Single column when only one callout visible
+  if ((assumptionsVisible && !questionsVisible) || (!assumptionsVisible && questionsVisible)) {
+    header.classList.add('insights-header--single-column');
+  } else {
+    header.classList.remove('insights-header--single-column');
+  }
+}
+
+/**
+ * Renders the assumptions list as insight callout items.
+ * Hides section if array is empty (defensive rendering).
+ * @param {string[]|null} assumptions - Array of assumption strings
+ */
+function renderAssumptions(assumptions) {
+  const section = elements.assumptionsSection;
+  const list = elements.assumptionsList;
+  if (!section || !list) return;
+
+  // Clear existing items
+  list.innerHTML = '';
+
+  // Hide if empty or null
+  if (!assumptions || assumptions.length === 0) {
+    section.classList.add('insight-callout--hidden');
+    updateInsightsHeaderVisibility();
+    return;
+  }
+
+  // Show section and render items
+  section.classList.remove('insight-callout--hidden');
+
+  assumptions.forEach((assumption) => {
+    const li = document.createElement('li');
+    li.className = 'callout-item';
+    li.textContent = assumption;
+    list.appendChild(li);
+  });
+  
+  updateInsightsHeaderVisibility();
+}
+
+/**
+ * Renders the questions list as insight callout items.
+ * Hides section if array is empty (defensive rendering).
+ * @param {string[]|null} questions - Array of question strings
+ */
+function renderQuestions(questions) {
+  const section = elements.questionsSection;
+  const list = elements.questionsList;
+  if (!section || !list) return;
+
+  // Clear existing items
+  list.innerHTML = '';
+
+  // Hide if empty or null
+  if (!questions || questions.length === 0) {
+    section.classList.add('insight-callout--hidden');
+    updateInsightsHeaderVisibility();
+    return;
+  }
+
+  // Show section and render items
+  section.classList.remove('insight-callout--hidden');
+
+  questions.forEach((question) => {
+    const li = document.createElement('li');
+    li.className = 'callout-item';
+    li.textContent = question;
+    list.appendChild(li);
+  });
+  
+  updateInsightsHeaderVisibility();
+}
+
+/**
+ * Resets both assumptions and questions to hidden state.
+ */
+function resetInsights() {
+  renderAssumptions(null);
+  renderQuestions(null);
+}
+
 /**
  * Renders the full validation state (status badge, checklist, metrics grid, coverage, errors).
  * @param {Object|null} validation - The validation object from API response
@@ -806,6 +920,10 @@ async function generatePlan() {
     // Render repair log (PR 2.3)
     renderRepairLog(data.debug || null);
     
+    // Render assumptions & questions (PR 3.4)
+    renderAssumptions(data.assumptions || null);
+    renderQuestions(data.questions || null);
+    
     // Hide loading state (PR 3.1)
     hideLoadingState();
 
@@ -838,6 +956,9 @@ window.PlanProof = {
   resetCoverage,
   renderRepairLog,
   resetRepairLog,
+  renderAssumptions,
+  renderQuestions,
+  resetInsights,
   renderTimeline,
   resetTimeline,
   showLoadingState,
@@ -857,6 +978,7 @@ document.addEventListener('DOMContentLoaded', () => {
   resetConstraints();
   resetCoverage();
   resetRepairLog();
+  resetInsights();
 
   // Set default current time to now
   const currentTimeInput = elements.currentTime;

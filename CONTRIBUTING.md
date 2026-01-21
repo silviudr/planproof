@@ -183,6 +183,8 @@ PlanProof values correctness over persuasion.
 - [X] PR 3.1: Loading/Interaction States
 - [X] PR 3.2: Defensive Rendering
 - [X] PR 3.3: Failure/Rejection Styles
+- [X] PR 3.4: Assumptions & Questions (Show the AI's "Why").
+- [ ] PR 4.1: Opik Trace Link (Show the "View Trace" button for the judges).
 
 ## Backend Lane (Codex)
 
