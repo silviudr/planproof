@@ -628,8 +628,12 @@ function renderTimeline(plan, isRejected = false) {
 
   // Update task count
   if (countEl) {
-    const label = isRejected ? 'draft tasks' : 'tasks';
-    countEl.textContent = `${plan.length} ${plan.length !== 1 ? label : label.replace('s', '')}`;
+    const isSingle = plan.length === 1;
+    if (isRejected) {
+      countEl.textContent = `${plan.length} ${isSingle ? 'draft task' : 'draft tasks'}`;
+    } else {
+      countEl.textContent = `${plan.length} ${isSingle ? 'task' : 'tasks'}`;
+    }
   }
 }
 
