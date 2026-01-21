@@ -52,7 +52,7 @@ def _validate_plan(
         PlanValidation containing metrics and errors.
     """
     constraint_violation_count = check_constraints(
-        plan, metadata.detected_constraints
+        plan, metadata.detected_constraints, current_time
     )
     overlap_minutes = calculate_overlaps(plan)
     hallucination_count = check_hallucinations(
