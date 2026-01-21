@@ -11,7 +11,6 @@ from eval.feasibility import check_feasibility
 from eval.hallucination import check_hallucinations
 from eval.recall import calculate_recall
 from eval.time_math import calculate_overlaps
-from opik import opik_context
 from planproof_api.agent.extractor import extract_metadata
 from planproof_api.agent.planner import PlanGenerationError, generate_plan
 from planproof_api.agent.schemas import (
@@ -23,7 +22,7 @@ from planproof_api.agent.schemas import (
     PlanValidation,
     ValidationMetrics,
 )
-from planproof_api.observability.opik import opik
+from planproof_api.observability.opik import opik, opik_context
 
 router = APIRouter()
 
