@@ -25,8 +25,11 @@ def generate_plan(
     metadata: ExtractedMetadata,
     current_time: str,
     timezone: str,
+    repair_prompt: str | None = None,
 ) -> tuple[list[PlanItem], list[str], list[str]]:
     """Generate a plan from context and extracted metadata using the LLM.
+
+    This implements the "Generation" step of the Sandwich Architecture.
 
     Args:
         context: Raw user context string.
@@ -39,20 +42,24 @@ def generate_plan(
     """
     try:
         client = OpenAI()
+        user_content = (
+            "Context:\n"
+            f"{context}\n\n"
+            "Extracted metadata:\n"
+            f"{metadata.model_dump_json()}\n\n"
+            f"The current time is {current_time} in {timezone}. "
+            "Do not schedule any tasks before this time."
+        )
+        if repair_prompt:
+            user_content = f"{user_content}\n\nRepair instructions:\n{repair_prompt}"
+
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": _SYSTEM_PROMPT},
                 {
                     "role": "user",
-                    "content": (
-                        "Context:\n"
-                        f"{context}\n\n"
-                        "Extracted metadata:\n"
-                        f"{metadata.model_dump_json()}\n\n"
-                        f"The current time is {current_time} in {timezone}. "
-                        "Do not schedule any tasks before this time."
-                    ),
+                    "content": user_content,
                 },
             ],
             response_format={"type": "json_object"},
