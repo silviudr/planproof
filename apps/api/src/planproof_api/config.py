@@ -4,6 +4,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    OPENAI_API_KEY: str | None = None
     OPIK_API_KEY: str | None = None
     OPIK_PROJECT_NAME: str = "Hackaton"
     OPIK_WORKSPACE: str = "silviu-druma"
