@@ -19,6 +19,7 @@
   /* Colors: Status */
   --color-success: #10b981;
   --color-failure: #f43f5e;
+  --color-warning: #f59e0b;
   --color-pending: #64748b;
   
   /* Colors: Text */
@@ -252,15 +253,34 @@ body {
 
 .panel-header {
   display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-lg);
+}
+
+.proof-sidebar .panel-header {
+  flex-direction: column;
+}
+
+.timeline-panel .panel-header {
+  flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: var(--space-lg);
 }
 
 .panel-title {
   font-size: 1.125rem;
   font-weight: 600;
   color: var(--color-text-primary);
+}
+
+/* Observability Label (PR 4.2) */
+.observability-label {
+  font-size: 0.625rem;
+  color: var(--color-text-muted);
+  opacity: 0.7;
+  letter-spacing: 0.05em;
 }
 
 .task-count {
@@ -772,6 +792,20 @@ body {
 
 .checklist-item--fail .check-icon {
   color: var(--color-failure);
+}
+
+/* Unavailable state for missing metrics (PR 4.2 Defensive UI) */
+.checklist-item--unavailable {
+  opacity: 0.6;
+}
+
+.checklist-item--unavailable .check-icon {
+  color: var(--color-warning);
+}
+
+.checklist-item--unavailable .check-value {
+  color: var(--color-text-muted);
+  font-style: italic;
 }
 
 /* --------------------------------------------------------------------------
