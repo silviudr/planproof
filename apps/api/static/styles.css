@@ -470,6 +470,8 @@ body {
    Proof Sidebar (Validation)
    -------------------------------------------------------------------------- */
 .proof-sidebar {
+  display: flex;
+  flex-direction: column;
   background-color: var(--color-bg-primary);
   padding: var(--space-xl);
   overflow-y: auto;
@@ -989,6 +991,56 @@ body {
   background-color: rgba(244, 63, 94, 0.1);
   border-left: 2px solid var(--color-failure);
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+/* --------------------------------------------------------------------------
+   Trace Link Section (PR 4.1)
+   -------------------------------------------------------------------------- */
+.trace-section {
+  margin-top: auto;
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--color-bg-elevated);
+}
+
+.trace-section--hidden {
+  display: none;
+}
+
+.btn-trace {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  width: 100%;
+  padding: var(--space-sm) var(--space-md);
+  font-family: var(--font-system);
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  background-color: transparent;
+  border: 1px solid var(--color-bg-elevated);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-trace:hover {
+  color: var(--color-text);
+  border-color: var(--color-accent-violet);
+  background-color: rgba(139, 92, 246, 0.1);
+}
+
+.trace-icon {
+  font-size: 0.875rem;
+}
+
+.trace-text {
+  letter-spacing: 0.025em;
+}
+
+.trace-external {
+  font-size: 0.625rem;
+  opacity: 0.7;
 }
 
 /* --------------------------------------------------------------------------
