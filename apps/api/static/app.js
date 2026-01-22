@@ -216,28 +216,31 @@ function renderErrors(errors, isPriority = false) {
 }
 
 // ==========================================================================
-// Opik Trace Link (PR 4.1)
+// Opik Trace Link (PR 4.1, updated PR 4.2)
 // ==========================================================================
 
 /**
- * Shows or hides the Opik trace link section.
- * @param {boolean} visible - Whether to show the trace link
+ * Enables or disables the Opik trace link button.
+ * @param {boolean} enabled - Whether the trace link should be clickable
  * @param {string|null} traceUrl - Optional custom trace URL
  */
-function renderTraceLink(visible, traceUrl = null) {
-  const section = elements.traceSection;
+function renderTraceLink(enabled, traceUrl = null) {
   const link = elements.traceLink;
-  if (!section) return;
+  if (!link) return;
 
-  if (!visible) {
-    section.classList.add('trace-section--hidden');
+  if (!enabled) {
+    link.classList.add('btn-trace--disabled');
+    link.setAttribute('aria-disabled', 'true');
+    link.setAttribute('title', 'Generate a plan first to view the technical trace.');
     return;
   }
 
-  section.classList.remove('trace-section--hidden');
+  link.classList.remove('btn-trace--disabled');
+  link.setAttribute('aria-disabled', 'false');
+  link.setAttribute('title', 'Inspect the agentic logic, deterministic logs, and LLM spans in the Opik observability suite.');
   
   // Update URL if provided (for future per-trace linking)
-  if (traceUrl && link) {
+  if (traceUrl) {
     link.href = traceUrl;
   }
 }
