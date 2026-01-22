@@ -5,6 +5,7 @@ import json
 from openai import OpenAI
 
 from planproof_api.agent.schemas import ExtractedMetadata, PlanItem
+from planproof_api.observability.opik import opik
 
 _SYSTEM_PROMPT = (
     "You are a planning assistant. Return ONLY valid JSON with keys: "
@@ -18,6 +19,7 @@ class PlanGenerationError(RuntimeError):
     pass
 
 
+@opik.track(name="generate_plan")
 def generate_plan(
     context: str,
     metadata: ExtractedMetadata,

@@ -161,6 +161,9 @@ def create_plan(request: PlanRequest) -> PlanResponse:
         pass
 
     metadata = extract_metadata(request.context)
+    print(
+        f"DEBUG: Extractor produced {len(metadata.task_keywords)} keywords"
+    )
     try:
         plan, assumptions, questions = _initial_planning_step(request, metadata)
     except PlanGenerationError as exc:
@@ -190,6 +193,12 @@ def create_plan(request: PlanRequest) -> PlanResponse:
         )
 
     validation = _validate_plan(plan, metadata, request.current_time)
+    print(
+        "DEBUG: Validation - Overlaps: "
+        f"{validation.metrics.overlap_minutes}, "
+        "Recall: "
+        f"{validation.metrics.keyword_recall_score}"
+    )
     repair_attempted = False
     repair_success = False
 
@@ -201,6 +210,12 @@ def create_plan(request: PlanRequest) -> PlanResponse:
             )
             validation = _validate_plan(plan, metadata, request.current_time)
             repair_success = validation.status == "pass"
+            print(
+                "DEBUG: Validation (repair) - Overlaps: "
+                f"{validation.metrics.overlap_minutes}, "
+                "Recall: "
+                f"{validation.metrics.keyword_recall_score}"
+            )
         except PlanGenerationError as exc:
             validation = PlanValidation(
                 status="fail",
@@ -213,6 +228,7 @@ def create_plan(request: PlanRequest) -> PlanResponse:
                 ),
                 errors=[str(exc)],
             )
+    print(f"DEBUG: Trace ID: {opik.get_current_trace_id() or 'No Trace'}")
 
     return PlanResponse(
         plan=plan,

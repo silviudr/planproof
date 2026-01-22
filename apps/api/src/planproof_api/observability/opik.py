@@ -3,7 +3,7 @@ import socket
 import sys
 
 if "OPIK_PROJECT_NAME" not in os.environ:
-    os.environ["OPIK_PROJECT_NAME"] = "PlanProof"
+    os.environ["OPIK_PROJECT_NAME"] = "Hackaton"
 
 
 def _warn(message: str) -> None:
@@ -34,6 +34,14 @@ class _NoOpOpik:
             return func
 
         return decorator
+
+    @staticmethod
+    def configure(*_args, **_kwargs) -> None:
+        return None
+
+    @staticmethod
+    def get_current_trace_id() -> None:
+        return None
 
 
 class _NoOpOpikContext:
