@@ -22,7 +22,8 @@ from planproof_api.agent.schemas import (
     PlanValidation,
     ValidationMetrics,
 )
-from planproof_api.observability.opik import opik, opik_context
+from opik import opik_context
+from planproof_api.observability.opik import opik
 
 router = APIRouter()
 
@@ -228,7 +229,12 @@ def create_plan(request: PlanRequest) -> PlanResponse:
                 ),
                 errors=[str(exc)],
             )
-    print(f"DEBUG: Trace ID: {opik.get_current_trace_id() or 'No Trace'}")
+    trace_id = "No Trace"
+    try:
+        trace_id = opik_context.get_current_trace_id() or "No Trace"
+    except Exception:
+        pass
+    print(f"DEBUG: Opik Trace ID: {trace_id}")
 
     return PlanResponse(
         plan=plan,

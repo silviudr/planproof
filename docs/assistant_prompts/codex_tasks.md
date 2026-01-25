@@ -54,6 +54,7 @@ The implementation must conform to:
 ## Phase 4 — Observability
 
 - [X] **PR 4.1:** Integrate Opik tracing hooks for each step (Extract -> Plan -> Validate -> Repair).
+- [ ] **PR 4.1.2** — Correct Opik Context Retrieval
 - [ ] **PR 4.2:** Ensure `validation.metrics` are logged as properties in the Opik trace.
 
 ---
