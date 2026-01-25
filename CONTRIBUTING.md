@@ -201,6 +201,7 @@ PlanProof values correctness over persuasion.
 - [x] PR 3.2: Validation Wiring
 - [X] PR 3.3: 1-Shot Repair Loop
 - [X] PR 4.1: Opik Trace Scaffolding
+- [ ] PR 4.1.2 — Correct Opik Context Retrieval
 - [ ] PR 4.2: Opik Metrics Integration
 
 ## Infrastructure
