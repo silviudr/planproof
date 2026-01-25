@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from pathlib import Path
+import os
 import sys
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
@@ -26,8 +27,22 @@ app = FastAPI()
 
 app.include_router(router)
 
-static_dir = Path(__file__).resolve().parent.parent.parent / "static"
-if not static_dir.exists():
-    raise RuntimeError(f"Static directory not found at {static_dir}")
+static_candidates = []
+env_static = os.getenv("PLANPROOF_STATIC_DIR")
+if env_static:
+    static_candidates.append(Path(env_static))
+static_candidates.append(Path.cwd() / "apps" / "api" / "static")
+static_candidates.append(Path(__file__).resolve().parent.parent.parent / "static")
+static_candidates.append(Path(__file__).resolve().parent / "static")
+
+static_dir = next(
+    (candidate for candidate in static_candidates if candidate.exists()),
+    None,
+)
+if static_dir is None:
+    raise RuntimeError(
+        "Static directory not found. "
+        "Set PLANPROOF_STATIC_DIR or run from the repo root."
+    )
 
 app.mount("/", StaticFiles(directory=str(static_dir), html=True), name="static")

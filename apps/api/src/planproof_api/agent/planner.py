@@ -11,7 +11,22 @@ _SYSTEM_PROMPT = (
     "You are a planning assistant. Return ONLY valid JSON with keys: "
     "plan, assumptions, questions. "
     "Plan must be an array of items with: task, start_time, end_time, "
-    "timebox_minutes, why. Use ISO-8601 timestamps."
+    "timebox_minutes, why. Use ISO-8601 timestamps. "
+    "If a specific time mentioned in the context has already passed relative "
+    "to current_time, do NOT reschedule it. Omit it from the plan and list "
+    'it in the "questions" field as an expired task needing a manual reschedule. '
+    "All questions must be natural language sentences, not JSON strings. "
+    "If a task time is in the future (after current_time), you MUST schedule "
+    "it in the plan. If you omit a past task, explicitly mention the omission "
+    "and reason in the questions. "
+    "You MUST output at least 2 assumptions. "
+    "If the user did not specify a duration, ask about it in questions. "
+    "Current time is provided in 12h format. Be extremely careful with AM/PM: "
+    "3:15 PM is 15:15. If the current time is 6 AM, a 3 PM meeting is in the "
+    "future and must be scheduled. "
+    "Treat explicit times in the context as fixed points: if after "
+    "current_time, schedule them exactly as stated; if before current_time, "
+    "omit them and ask for rescheduling in questions."
 )
 
 
@@ -47,8 +62,12 @@ def generate_plan(
             f"{context}\n\n"
             "Extracted metadata:\n"
             f"{metadata.model_dump_json()}\n\n"
-            f"The current time is {current_time} in {timezone}. "
-            "Do not schedule any tasks before this time."
+            f"The user is in {timezone}. "
+            f"Current local time is {current_time}. "
+            "All constraints like '1 PM' refer to this local time. "
+            "Do not confuse UTC with Local. "
+            "Do not schedule any tasks before this time. "
+            "Explicit times in the context are fixed points."
         )
         if repair_prompt:
             user_content = f"{user_content}\n\nRepair instructions:\n{repair_prompt}"

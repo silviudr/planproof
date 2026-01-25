@@ -21,8 +21,19 @@ _COMMON_VERBS = {
     "get",
     "start",
     "finish",
+    "ensure",
+    "prepare",
+    "meeting",
+    "scheduled",
+    "after",
+    "attend",
+    "take",
+    "need",
+    "complete",
+    "prioritize",
+    "stay",
 }
-_COMMON_WORDS = {
+_STOP_WORDS = {
     "the",
     "and",
     "with",
@@ -48,14 +59,55 @@ _COMMON_WORDS = {
     "that",
     "these",
     "those",
+    "ready",
+    "upcoming",
+    "second",
+    "approximately",
+    "organized",
+    "starts",
+    "following",
+    "during",
+    "within",
+    "milk",
+    "another",
+    "first",
+    "prior",
+    "scheduled",
+    "planned",
+    "meeting",
+    "ensure",
+    "ready",
+    "upcoming",
+    "attend",
+    "take",
+    "approximately",
+    "complete",
+    "prioritize",
+    "organized",
+    "stay",
+    "second",
+    "following",
+    "after",
+    "need",
+    "buy",
 }
+
+
+def _is_high_entropy(token: str) -> bool:
+    if any(char.isdigit() for char in token):
+        return True
+    if "-" in token or "." in token:
+        return True
+    return len(token) >= 3
 
 
 def _extract_significant_tokens(text: str) -> set[str]:
     words = {word.lower() for word in _WORD_PATTERN.findall(text)}
     time_tokens = {match.group(0).lower() for match in _TIME_PATTERN.finditer(text)}
     significant_words = {
-        word for word in words if word not in _COMMON_VERBS | _COMMON_WORDS
+        word
+        for word in words
+        if word not in _COMMON_VERBS | _STOP_WORDS and _is_high_entropy(word)
     }
     return significant_words | time_tokens
 

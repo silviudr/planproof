@@ -58,7 +58,7 @@ def test_calculate_recall_case_insensitive_match() -> None:
 
 def test_calculate_recall_threshold_boundary(monkeypatch) -> None:
     def fake_extract_one(_: str, __: list[str], ___=None) -> tuple[str, int]:
-        return ("alpha", 80)
+        return ("alpha", 70)
 
     monkeypatch.setattr("eval.recall.process.extractOne", fake_extract_one)
 
@@ -69,13 +69,24 @@ def test_calculate_recall_threshold_boundary(monkeypatch) -> None:
 
 def test_calculate_recall_threshold_above(monkeypatch) -> None:
     def fake_extract_one(_: str, __: list[str], ___=None) -> tuple[str, int]:
-        return ("alpha", 81)
+        return ("alpha", 71)
 
     monkeypatch.setattr("eval.recall.process.extractOne", fake_extract_one)
 
     items = [_item("Alpha", "")]
 
     assert calculate_recall(items, ["alpha"]) == 1.0
+
+
+def test_calculate_recall_synonym_match(monkeypatch) -> None:
+    def fake_extract_one(_: str, __: list[str], ___=None) -> tuple[str, int]:
+        return ("gym session", 72)
+
+    monkeypatch.setattr("eval.recall.process.extractOne", fake_extract_one)
+
+    items = [_item("Gym session", "")]
+
+    assert calculate_recall(items, ["exercise"]) == 1.0
 
 
 def test_calculate_recall_no_matches() -> None:
