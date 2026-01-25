@@ -4,6 +4,7 @@ import json
 
 from fastapi import APIRouter
 
+from dateutil import tz
 from dateutil.parser import isoparse
 
 from eval.constraints import check_constraints
@@ -46,12 +47,12 @@ def _format_plan(plan: list[PlanItem]) -> str:
 
 @opik.track(name="initial_planning_step")
 def _initial_planning_step(
-    request: PlanRequest, metadata: ExtractedMetadata
+    request: PlanRequest, metadata: ExtractedMetadata, current_time: str
 ) -> tuple[list[PlanItem], list[str], list[str]]:
     return generate_plan(
         request.context,
         metadata,
-        request.current_time,
+        current_time,
         request.timezone,
     )
 
@@ -72,17 +73,20 @@ def _validate_plan(
     Returns:
         PlanValidation containing metrics and errors.
     """
-    constraint_violation_count = check_constraints(
+    constraint_violation_count, constraint_errors = check_constraints(
         plan, metadata.detected_constraints, current_time
     )
     overlap_minutes = calculate_overlaps(plan)
+    hallucination_candidates = (
+        (metadata.task_keywords or []) + (metadata.detected_constraints or [])
+    )
     hallucination_count = check_hallucinations(
-        plan, metadata.ground_truth_entities, metadata.task_keywords
+        plan, metadata.ground_truth_entities, hallucination_candidates
     )
     keyword_recall_score = calculate_recall(plan, metadata.task_keywords)
     human_feasibility_flags = check_feasibility(plan)
 
-    errors: list[str] = []
+    errors: list[str] = list(constraint_errors)
     current_dt = isoparse(current_time)
     for item in plan:
         start_dt = isoparse(item.start_time)
@@ -98,8 +102,6 @@ def _validate_plan(
                 f'Task "{item.task}" timebox_minutes mismatch with duration.'
             )
 
-    if constraint_violation_count > 0:
-        errors.append("constraint_violation_count > 0")
     if overlap_minutes > 0:
         errors.append("overlap_minutes > 0")
     if hallucination_count > 0:
@@ -121,6 +123,7 @@ def _validate_plan(
         opik_context.update_current_span(
             metadata={
                 "constraint_violation_count": constraint_violation_count,
+                "constraint_errors": constraint_errors,
                 "overlap_minutes": overlap_minutes,
                 "hallucination_count": hallucination_count,
                 "keyword_recall_score": keyword_recall_score,
@@ -134,7 +137,11 @@ def _validate_plan(
 
 @opik.track(name="repair_step")
 def _repair_plan(
-    request: PlanRequest, metadata: ExtractedMetadata, failed_plan: list[PlanItem], errors: list[str]
+    request: PlanRequest,
+    metadata: ExtractedMetadata,
+    failed_plan: list[PlanItem],
+    errors: list[str],
+    current_time: str,
 ) -> tuple[list[PlanItem], list[str], list[str]]:
     repair_prompt = (
         "Original context:\n"
@@ -147,10 +154,22 @@ def _repair_plan(
     return generate_plan(
         request.context,
         metadata,
-        request.current_time,
+        current_time,
         request.timezone,
         repair_prompt=repair_prompt,
     )
+
+
+def _normalize_current_time(current_time: str, timezone: str) -> str:
+    current_dt = isoparse(current_time)
+    local_tz = tz.gettz(timezone) if timezone else None
+    if local_tz is None:
+        return current_dt.isoformat()
+    if current_dt.tzinfo is None:
+        current_dt = current_dt.replace(tzinfo=tz.UTC)
+    local_dt = current_dt.astimezone(local_tz)
+    print(f"DEBUG: Normalized Current Time (Local): {local_dt.isoformat()}")
+    return local_dt.isoformat()
 
 
 @router.post("/api/plan", response_model=PlanResponse)
@@ -161,12 +180,17 @@ def create_plan(request: PlanRequest) -> PlanResponse:
     except Exception:
         pass
 
+    local_current_time = _normalize_current_time(
+        request.current_time, request.timezone
+    )
     metadata = extract_metadata(request.context)
     print(
         f"DEBUG: Extractor produced {len(metadata.task_keywords)} keywords"
     )
     try:
-        plan, assumptions, questions = _initial_planning_step(request, metadata)
+        plan, assumptions, questions = _initial_planning_step(
+            request, metadata, local_current_time
+        )
     except PlanGenerationError as exc:
         validation = PlanValidation(
             status="fail",
@@ -193,7 +217,7 @@ def create_plan(request: PlanRequest) -> PlanResponse:
             ),
         )
 
-    validation = _validate_plan(plan, metadata, request.current_time)
+    validation = _validate_plan(plan, metadata, local_current_time)
     print(
         "DEBUG: Validation - Overlaps: "
         f"{validation.metrics.overlap_minutes}, "
@@ -207,9 +231,9 @@ def create_plan(request: PlanRequest) -> PlanResponse:
         repair_attempted = True
         try:
             plan, assumptions, questions = _repair_plan(
-                request, metadata, plan, validation.errors
+                request, metadata, plan, validation.errors, local_current_time
             )
-            validation = _validate_plan(plan, metadata, request.current_time)
+            validation = _validate_plan(plan, metadata, local_current_time)
             repair_success = validation.status == "pass"
             print(
                 "DEBUG: Validation (repair) - Overlaps: "
@@ -235,6 +259,8 @@ def create_plan(request: PlanRequest) -> PlanResponse:
     except Exception:
         pass
     print(f"DEBUG: Opik Trace ID: {trace_id}")
+
+    plan.sort(key=lambda item: item.start_time)
 
     return PlanResponse(
         plan=plan,

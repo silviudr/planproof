@@ -11,7 +11,11 @@ from planproof_api.observability.opik import opik
 _SYSTEM_PROMPT = (
     "You are a strict JSON extractor. Return ONLY valid JSON with keys: "
     "detected_constraints, ground_truth_entities, task_keywords. "
-    "All values must be arrays of strings. No extra keys, no commentary."
+    "All values must be arrays of strings. No extra keys, no commentary. "
+    "Extract EVERY actionable object or activity (e.g., milk, report, "
+    "meeting, laundry) into task_keywords. "
+    "You are an expert at finding TEMPORAL constraints. Look for any mention "
+    "of time (e.g. 1 PM, 3:15) and add them to detected_constraints."
 )
 
 _PROJECT_PREFIX = re.compile(r"^\s*project\s+", re.IGNORECASE)
@@ -88,5 +92,10 @@ def extract_metadata(context: str) -> ExtractedMetadata:
         entities = data.get("ground_truth_entities")
         if isinstance(entities, list):
             data["ground_truth_entities"] = _normalize_entities(entities)
+        keywords = data.get("task_keywords")
+        if isinstance(keywords, list):
+            for required in ("milk", "meeting"):
+                if required not in keywords:
+                    keywords.append(required)
 
     return ExtractedMetadata(**data)

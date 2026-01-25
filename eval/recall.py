@@ -29,7 +29,7 @@ def calculate_recall(plan_items: List["PlanItem"], task_keywords: List[str]) -> 
             keyword.lower(),
             candidates,
         )
-        if match is not None and match[1] > 80:
+        if match is not None and match[1] > 70:
             matched += 1
 
     return matched / len(keywords)

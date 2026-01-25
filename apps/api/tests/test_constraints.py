@@ -22,7 +22,12 @@ def test_check_constraints_start_gate_violation() -> None:
     ]
     constraints = ["Busy until 10 AM"]
 
-    assert check_constraints(items, constraints, "2025-01-18T08:00:00-05:00") == 1
+    count, errors = check_constraints(
+        items, constraints, "2025-01-18T08:00:00-05:00"
+    )
+
+    assert count == 1
+    assert errors
 
 
 def test_check_constraints_deadline_violation() -> None:
@@ -31,4 +36,9 @@ def test_check_constraints_deadline_violation() -> None:
     ]
     constraints = ["Leave by 5 PM"]
 
-    assert check_constraints(items, constraints, "2025-01-18T12:00:00-05:00") == 1
+    count, errors = check_constraints(
+        items, constraints, "2025-01-18T12:00:00-05:00"
+    )
+
+    assert count == 1
+    assert errors
