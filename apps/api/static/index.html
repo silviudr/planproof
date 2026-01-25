@@ -96,8 +96,17 @@
         <div id="timeline-container" class="timeline">
           <!-- Timeline items will be rendered here by app.js -->
           <div class="timeline-empty">
-            <p class="empty-message">No plan generated yet.</p>
-            <p class="empty-hint">Enter your context and click "Generate Plan"</p>
+            <div class="empty-illustration">
+              <div class="empty-icon-ring">
+                <span class="empty-icon">📋</span>
+              </div>
+              <div class="empty-sparkle empty-sparkle--1">✦</div>
+              <div class="empty-sparkle empty-sparkle--2">✧</div>
+              <div class="empty-sparkle empty-sparkle--3">✦</div>
+            </div>
+            <h3 class="empty-title">Ready When You Are</h3>
+            <p class="empty-message">Paste your context, constraints, and goals on the left.</p>
+            <p class="empty-hint">We'll build a mathematically verified plan—no hallucinations, no overlaps.</p>
           </div>
           <!-- Loading State (PR 3.1) -->
           <div id="timeline-loading" class="timeline-loading">
@@ -112,6 +121,7 @@
       <aside class="proof-sidebar">
         <header class="panel-header">
           <h2 class="panel-title">Validation Proof</h2>
+          <span class="observability-label mono">Observability: Opik / Project: Hackaton</span>
         </header>
         
         <!-- Status Badge -->
@@ -130,7 +140,13 @@
         
         <!-- Pre-Flight Checklist -->
         <div class="checklist-section">
-          <h3 class="section-title">Pre-Flight Checks</h3>
+          <h3 class="section-title">
+            Pre-Flight Checks
+            <button type="button" class="info-tooltip" aria-label="What are Pre-Flight Checks?">
+              <span class="info-icon">ⓘ</span>
+              <span class="tooltip-content">Binary pass/fail gates that must ALL pass for a valid plan. Zero tolerance for constraint violations, time overlaps, or hallucinated tasks.</span>
+            </button>
+          </h3>
           <ul id="checklist" class="checklist">
             <li class="checklist-item checklist-item--pending">
               <span class="check-icon">○</span>
@@ -157,7 +173,13 @@
         
         <!-- Metrics Grid (PR 1.4) -->
         <div class="metrics-section">
-          <h3 class="section-title">Validation Metrics</h3>
+          <h3 class="section-title">
+            Validation Metrics
+            <button type="button" class="info-tooltip" aria-label="What are Validation Metrics?">
+              <span class="info-icon">ⓘ</span>
+              <span class="tooltip-content">Quantitative measurements from deterministic Python validators. These numbers are computed, not guessed—an LLM never grades its own plan.</span>
+            </button>
+          </h3>
           <div id="metrics-grid" class="metrics-grid">
             <div class="metric-tile" data-metric="constraint_violation_count">
               <span class="metric-value mono">—</span>
@@ -215,14 +237,15 @@
         </div>
         
         <!-- Opik Trace Link (PR 4.1) -->
-        <div id="trace-section" class="trace-section trace-section--hidden">
+        <div id="trace-section" class="trace-section">
           <a 
             id="trace-link" 
-            href="https://www.comet.com/opik/planproof" 
+            href="https://www.comet.com/opik/silviu-druma/projects/Hackaton" 
             target="_blank" 
             rel="noopener noreferrer"
-            class="btn-trace"
-            title="Inspect the agentic logic, deterministic logs, and LLM spans in the Opik observability suite."
+            class="btn-trace btn-trace--disabled"
+            title="Generate a plan first to view the technical trace."
+            aria-disabled="true"
           >
             <span class="trace-icon">🔍</span>
             <span class="trace-text">View Technical Trace</span>

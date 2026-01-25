@@ -138,13 +138,17 @@ const METRIC_CONFIG = [
 /**
  * Renders the pre-flight checklist with metric values.
  * @param {Object|null} metrics - The validation.metrics object from API response
+ * @param {boolean} planGenerated - Whether a plan was successfully generated (for defensive UI)
  */
-function renderChecklist(metrics) {
+function renderChecklist(metrics, planGenerated = false) {
   const checklist = elements.checklist;
   if (!checklist) return;
 
   // Clear existing items
   checklist.innerHTML = '';
+
+  // Defensive UI: Show "Data Unavailable" if plan was generated but metrics missing
+  const showUnavailable = planGenerated && !metrics;
 
   METRIC_CONFIG.forEach((config) => {
     const li = document.createElement('li');
@@ -156,7 +160,9 @@ function renderChecklist(metrics) {
     const passes = hasValue && config.isPass(value);
 
     // Set state class
-    if (!hasValue) {
+    if (showUnavailable) {
+      li.classList.add('checklist-item--unavailable');
+    } else if (!hasValue) {
       li.classList.add('checklist-item--pending');
     } else if (passes) {
       li.classList.add('checklist-item--pass');
@@ -165,8 +171,8 @@ function renderChecklist(metrics) {
     }
 
     // Build inner HTML
-    const icon = !hasValue ? '○' : passes ? '✓' : '✗';
-    const displayValue = hasValue ? config.format(value) : '—';
+    const icon = showUnavailable ? '⚠' : !hasValue ? '○' : passes ? '✓' : '✗';
+    const displayValue = showUnavailable ? 'N/A' : hasValue ? config.format(value) : '—';
 
     li.innerHTML = `
       <span class="check-icon">${icon}</span>
@@ -216,28 +222,31 @@ function renderErrors(errors, isPriority = false) {
 }
 
 // ==========================================================================
-// Opik Trace Link (PR 4.1)
+// Opik Trace Link (PR 4.1, updated PR 4.2)
 // ==========================================================================
 
 /**
- * Shows or hides the Opik trace link section.
- * @param {boolean} visible - Whether to show the trace link
+ * Enables or disables the Opik trace link button.
+ * @param {boolean} enabled - Whether the trace link should be clickable
  * @param {string|null} traceUrl - Optional custom trace URL
  */
-function renderTraceLink(visible, traceUrl = null) {
-  const section = elements.traceSection;
+function renderTraceLink(enabled, traceUrl = null) {
   const link = elements.traceLink;
-  if (!section) return;
+  if (!link) return;
 
-  if (!visible) {
-    section.classList.add('trace-section--hidden');
+  if (!enabled) {
+    link.classList.add('btn-trace--disabled');
+    link.setAttribute('aria-disabled', 'true');
+    link.setAttribute('title', 'Generate a plan first to view the technical trace.');
     return;
   }
 
-  section.classList.remove('trace-section--hidden');
+  link.classList.remove('btn-trace--disabled');
+  link.setAttribute('aria-disabled', 'false');
+  link.setAttribute('title', 'Inspect the agentic logic, deterministic logs, and LLM spans in the Opik observability suite.');
   
   // Update URL if provided (for future per-trace linking)
-  if (traceUrl && link) {
+  if (traceUrl) {
     link.href = traceUrl;
   }
 }
@@ -598,8 +607,8 @@ function renderValidation(validation) {
                  validation.status === 'fail' ? 'fail' : 'pending';
   renderStatusBadge(status);
 
-  // Render checklist with metrics
-  renderChecklist(validation.metrics || null);
+  // Render checklist with metrics (planGenerated=true for defensive UI)
+  renderChecklist(validation.metrics || null, true);
 
   // Render metrics grid (PR 1.4)
   renderMetricsGrid(validation.metrics || null);
@@ -940,6 +949,9 @@ async function generatePlan() {
     }
 
     const data = await response.json();
+    
+    // DEBUG: Log full API response for field verification
+    console.log('DEBUG: Full API Response:', data);
 
     // Determine if plan is rejected (PR 3.3)
     const isRejected = data.validation?.status === 'fail';

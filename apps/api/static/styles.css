@@ -19,6 +19,7 @@
   /* Colors: Status */
   --color-success: #10b981;
   --color-failure: #f43f5e;
+  --color-warning: #f59e0b;
   --color-pending: #64748b;
   
   /* Colors: Text */
@@ -252,15 +253,34 @@ body {
 
 .panel-header {
   display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-lg);
+}
+
+.proof-sidebar .panel-header {
+  flex-direction: column;
+}
+
+.timeline-panel .panel-header {
+  flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: var(--space-lg);
 }
 
 .panel-title {
   font-size: 1.125rem;
   font-weight: 600;
   color: var(--color-text-primary);
+}
+
+/* Observability Label (PR 4.2) */
+.observability-label {
+  font-size: 0.625rem;
+  color: var(--color-text-muted);
+  opacity: 0.7;
+  letter-spacing: 0.05em;
 }
 
 .task-count {
@@ -297,21 +317,114 @@ body {
   border-radius: 1px;
 }
 
+/* --------------------------------------------------------------------------
+   Empty State (PR 4.2)
+   -------------------------------------------------------------------------- */
 .timeline-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   text-align: center;
   padding: var(--space-2xl) var(--space-lg);
+  min-height: 320px;
 }
 
-.empty-message {
-  font-size: 1rem;
-  color: var(--color-text-muted);
+.empty-illustration {
+  position: relative;
+  margin-bottom: var(--space-xl);
+}
+
+.empty-icon-ring {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(
+    135deg,
+    rgba(139, 92, 246, 0.15) 0%,
+    rgba(14, 165, 233, 0.1) 100%
+  );
+  border: 2px solid rgba(139, 92, 246, 0.3);
+  border-radius: 50%;
+  animation: pulse-ring 3s ease-in-out infinite;
+}
+
+.empty-icon {
+  font-size: 2rem;
+  filter: grayscale(0.2);
+}
+
+@keyframes pulse-ring {
+  0%, 100% {
+    transform: scale(1);
+    border-color: rgba(139, 92, 246, 0.3);
+  }
+  50% {
+    transform: scale(1.05);
+    border-color: rgba(139, 92, 246, 0.5);
+  }
+}
+
+.empty-sparkle {
+  position: absolute;
+  font-size: 0.75rem;
+  color: var(--color-accent-violet);
+  opacity: 0.6;
+  animation: sparkle 2s ease-in-out infinite;
+}
+
+.empty-sparkle--1 {
+  top: -5px;
+  right: -8px;
+  animation-delay: 0s;
+}
+
+.empty-sparkle--2 {
+  bottom: 5px;
+  left: -10px;
+  animation-delay: 0.7s;
+}
+
+.empty-sparkle--3 {
+  top: 10px;
+  right: -15px;
+  font-size: 0.5rem;
+  animation-delay: 1.3s;
+}
+
+@keyframes sparkle {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+.empty-title {
+  font-family: var(--font-human);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text);
   margin-bottom: var(--space-sm);
 }
 
+.empty-message {
+  font-size: 0.9375rem;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-xs);
+  max-width: 280px;
+}
+
 .empty-hint {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: var(--color-text-muted);
   opacity: 0.7;
+  max-width: 300px;
 }
 
 /* Rejected State (PR 3.3) */
@@ -539,6 +652,9 @@ body {
    Checklist Section
    -------------------------------------------------------------------------- */
 .section-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
   font-size: 0.6875rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -549,6 +665,77 @@ body {
 
 .section-title--error {
   color: var(--color-failure);
+}
+
+/* --------------------------------------------------------------------------
+   Info Tooltips (PR 4.2)
+   -------------------------------------------------------------------------- */
+.info-tooltip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  height: 1rem;
+  padding: 0;
+  background: transparent;
+  border: none;
+  cursor: help;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.info-icon {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  opacity: 0.6;
+  transition: opacity var(--transition-fast), color var(--transition-fast);
+}
+
+.info-tooltip:hover .info-icon {
+  opacity: 1;
+  color: var(--color-accent-violet);
+}
+
+.tooltip-content {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 220px;
+  padding: var(--space-sm) var(--space-md);
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-bg-elevated);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  font-family: var(--font-human);
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--color-text);
+  text-align: left;
+  white-space: normal;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity var(--transition-fast), visibility var(--transition-fast);
+  z-index: 100;
+}
+
+.tooltip-content::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--color-bg-elevated);
+}
+
+.info-tooltip:hover .tooltip-content,
+.info-tooltip:focus .tooltip-content {
+  opacity: 1;
+  visibility: visible;
 }
 
 /* Errors Priority State (PR 3.3) */
@@ -605,6 +792,20 @@ body {
 
 .checklist-item--fail .check-icon {
   color: var(--color-failure);
+}
+
+/* Unavailable state for missing metrics (PR 4.2 Defensive UI) */
+.checklist-item--unavailable {
+  opacity: 0.6;
+}
+
+.checklist-item--unavailable .check-icon {
+  color: var(--color-warning);
+}
+
+.checklist-item--unavailable .check-value {
+  color: var(--color-text-muted);
+  font-style: italic;
 }
 
 /* --------------------------------------------------------------------------
@@ -1028,6 +1229,19 @@ body {
   color: var(--color-text);
   border-color: var(--color-accent-violet);
   background-color: rgba(139, 92, 246, 0.1);
+}
+
+/* Disabled state until plan is generated (PR 4.2) */
+.btn-trace--disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.btn-trace--disabled:hover {
+  color: var(--color-text-muted);
+  border-color: var(--color-bg-elevated);
+  background-color: transparent;
 }
 
 .trace-icon {
