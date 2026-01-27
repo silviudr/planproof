@@ -48,9 +48,9 @@ class PlanItem(BaseModel):
 
 
 class ExtractedMetadata(BaseModel):
-    detected_constraints: list[StrictStr]
+    temporal_constraints: list[StrictStr]
     ground_truth_entities: list[StrictStr]
-    task_keywords: list[StrictStr]
+    actionable_tasks: list[StrictStr]
 
 
 class ValidationMetrics(BaseModel):
@@ -71,6 +71,7 @@ class DebugInfo(BaseModel):
     repair_attempted: bool
     repair_success: bool
     variant: Literal["v1_naive", "v2_structured", "v3_agentic_repair"]
+    trace_id: StrictStr | None = None
 
 
 class PlanResponse(BaseModel):

@@ -30,18 +30,18 @@ def _fake_openai(payload: dict) -> object:
 
 def test_extract_metadata_mocked(monkeypatch: pytest.MonkeyPatch) -> None:
     payload = {
-        "detected_constraints": ["Meeting at 2 PM"],
+        "temporal_constraints": ["Meeting at 2 PM"],
         "ground_truth_entities": ["Bob", "Apollo"],
-        "task_keywords": ["call", "project"],
+        "actionable_tasks": ["call", "project"],
     }
 
     monkeypatch.setattr(extractor, "OpenAI", lambda: _fake_openai(payload))
 
     result = extractor.extract_metadata("Need to call Bob about the Apollo project.")
 
-    assert result.detected_constraints == payload["detected_constraints"]
+    assert result.temporal_constraints == payload["temporal_constraints"]
     assert result.ground_truth_entities == payload["ground_truth_entities"]
-    assert result.task_keywords == payload["task_keywords"]
+    assert result.actionable_tasks == payload["actionable_tasks"]
 
 
 def test_extract_metadata_live(run_live: bool) -> None:

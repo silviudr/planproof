@@ -24,9 +24,9 @@ def test_repair_loop_success() -> None:
         variant="v3_agentic_repair",
     )
     metadata = ExtractedMetadata(
-        detected_constraints=[],
+        temporal_constraints=[],
         ground_truth_entities=["alpha", "beta"],
-        task_keywords=["alpha", "beta"],
+        actionable_tasks=["alpha", "beta"],
     )
 
     failing_plan = [
@@ -62,9 +62,9 @@ def test_repair_loop_not_needed() -> None:
         variant="v3_agentic_repair",
     )
     metadata = ExtractedMetadata(
-        detected_constraints=[],
+        temporal_constraints=[],
         ground_truth_entities=["alpha"],
-        task_keywords=["alpha"],
+        actionable_tasks=["alpha"],
     )
     passing_plan = [
         _item("Alpha", "2025-01-18T09:00:00-05:00", "2025-01-18T10:00:00-05:00", 60),
@@ -88,9 +88,9 @@ def test_repair_loop_failure() -> None:
         variant="v3_agentic_repair",
     )
     metadata = ExtractedMetadata(
-        detected_constraints=[],
+        temporal_constraints=[],
         ground_truth_entities=["alpha", "beta"],
-        task_keywords=["alpha", "beta"],
+        actionable_tasks=["alpha", "beta"],
     )
     failing_plan = [
         _item("Alpha", "2025-01-18T09:00:00-05:00", "2025-01-18T10:00:00-05:00", 60),

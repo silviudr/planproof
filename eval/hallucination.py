@@ -3,7 +3,6 @@ from __future__ import annotations
 import re
 from typing import List, TYPE_CHECKING
 
-from thefuzz import process
 
 if TYPE_CHECKING:
     from planproof_api.agent.schemas import PlanItem
@@ -19,6 +18,7 @@ _COMMON_VERBS = {
     "go",
     "buy",
     "get",
+    "call",
     "start",
     "finish",
     "ensure",
@@ -78,6 +78,9 @@ _STOP_WORDS = {
     "ensure",
     "ready",
     "upcoming",
+    "later",
+    "earlier",
+    "between",
     "attend",
     "take",
     "approximately",
@@ -90,6 +93,71 @@ _STOP_WORDS = {
     "after",
     "need",
     "buy",
+    "reschedule",
+    "rescheduled",
+    "shifting",
+    "conflict",
+    "resolved",
+    "adjusting",
+    "adjusted",
+    "shifted",
+    "allocated",
+    "allocation",
+    "remaining",
+    "timeframe",
+    "specified",
+    "overlap",
+    "constraint",
+    "modified",
+    "original",
+    "block",
+    "slot",
+    "moved",
+}
+
+_PRODUCTIVITY_WHITELIST = {
+    "attend",
+    "meeting",
+    "scheduled",
+    "shifted",
+    "adjusted",
+    "block",
+    "session",
+    "duration",
+    "time",
+    "pm",
+    "am",
+    "task",
+    "prepare",
+    "ensure",
+    "within",
+    "following",
+    "prior",
+    "another",
+    "second",
+    "leaving",
+}
+
+_REPAIR_META_WORDS = {
+    "reschedule",
+    "rescheduled",
+    "shifting",
+    "adjusted",
+    "shifted",
+    "adjusting",
+    "modified",
+    "original",
+    "conflict",
+    "resolved",
+    "break",
+    "gap",
+    "overlap",
+    "fixed",
+    "allocated",
+    "allocation",
+    "remaining",
+    "timeframe",
+    "specified",
 }
 
 
@@ -98,45 +166,97 @@ def _is_high_entropy(token: str) -> bool:
         return True
     if "-" in token or "." in token:
         return True
-    return len(token) >= 3
+    return len(token) >= 4
 
 
 def _extract_significant_tokens(text: str) -> set[str]:
-    words = {word.lower() for word in _WORD_PATTERN.findall(text)}
+    words: set[str] = set()
+    for match in _WORD_PATTERN.finditer(text):
+        token = match.group(0)
+        token_lower = token.lower()
+        if token_lower in _COMMON_VERBS | _STOP_WORDS:
+            continue
+        if token_lower in _PRODUCTIVITY_WHITELIST:
+            continue
+        if len(token) <= 3:
+            continue
+        if not _is_high_entropy(token_lower):
+            continue
+        words.add(token_lower)
+
     time_tokens = {match.group(0).lower() for match in _TIME_PATTERN.finditer(text)}
-    significant_words = {
-        word
-        for word in words
-        if word not in _COMMON_VERBS | _STOP_WORDS and _is_high_entropy(word)
-    }
-    return significant_words | time_tokens
+    return words | time_tokens
+
+
+_PROPER_NOUN_PATTERN = re.compile(r"\b[A-Z][a-zA-Z0-9\-\.]*\b")
 
 
 def check_hallucinations(
     plan_items: List["PlanItem"],
     ground_truth_entities: List[str],
-    task_keywords: List[str],
+    _task_keywords: List[str],
+    _match_threshold: int = 80,
+    _variant: str | None = None,
+    _detected_constraints: List[str] | None = None,
+    **_: object,
 ) -> int:
     tokens: set[str] = set()
     for item in plan_items:
-        tokens.update(_extract_significant_tokens(item.task))
-        tokens.update(_extract_significant_tokens(item.why))
+        if not item.task:
+            continue
+        for token in _PROPER_NOUN_PATTERN.findall(item.task):
+            token_lower = token.lower()
+            if token_lower in _COMMON_VERBS | _STOP_WORDS | _PRODUCTIVITY_WHITELIST:
+                continue
+            tokens.add(token)
 
     if not tokens:
         return 0
 
-    candidates = [
-        candidate.lower()
-        for candidate in (ground_truth_entities or []) + (task_keywords or [])
-        if candidate
-    ]
-    if not candidates:
+    if not ground_truth_entities:
         return len(tokens)
 
+    entities = [entity.lower() for entity in ground_truth_entities if entity]
     hallucination_count = 0
     for token in tokens:
-        match = process.extractOne(token, candidates)
-        if match is None or match[1] <= 80:
+        token_lower = token.lower()
+        if not any(token_lower in entity for entity in entities):
             hallucination_count += 1
 
     return hallucination_count
+
+
+def get_hallucinated_tokens(
+    plan_items: List["PlanItem"],
+    ground_truth_entities: List[str],
+    _task_keywords: List[str],
+    _match_threshold: int = 80,
+    _variant: str | None = None,
+    _detected_constraints: List[str] | None = None,
+    **_: object,
+) -> list[str]:
+    tokens: set[str] = set()
+    for item in plan_items:
+        if not item.task:
+            continue
+        for token in _PROPER_NOUN_PATTERN.findall(item.task):
+            token_lower = token.lower()
+            if token_lower in _COMMON_VERBS | _STOP_WORDS | _PRODUCTIVITY_WHITELIST:
+                continue
+            tokens.add(token)
+
+    if not tokens:
+        return []
+
+    if not ground_truth_entities:
+        return sorted(tokens)
+
+    entities = [entity.lower() for entity in ground_truth_entities if entity]
+    flagged: list[str] = []
+    for token in tokens:
+        token_lower = token.lower()
+        if not any(token_lower in entity for entity in entities):
+            print(f"DEBUG HALLUCINATION: Word '{token}' flagged (No ground truth)")
+            flagged.append(token)
+
+    return sorted(flagged)

@@ -9,13 +9,28 @@ from planproof_api.agent.schemas import ExtractedMetadata
 from planproof_api.observability.opik import opik
 
 _SYSTEM_PROMPT = (
+    "SYSTEM: You are a stateless extractor. Analyze ONLY the text provided "
+    "in the CURRENT request. Do not include entities or keywords from any "
+    "previous context. If the text does not mention milk, DO NOT include "
+    "milk in the output. "
     "You are a strict JSON extractor. Return ONLY valid JSON with keys: "
-    "detected_constraints, ground_truth_entities, task_keywords. "
+    "actionable_tasks, temporal_constraints, ground_truth_entities. "
     "All values must be arrays of strings. No extra keys, no commentary. "
-    "Extract EVERY actionable object or activity (e.g., milk, report, "
-    "meeting, laundry) into task_keywords. "
-    "You are an expert at finding TEMPORAL constraints. Look for any mention "
-    "of time (e.g. 1 PM, 3:15) and add them to detected_constraints."
+    "Analyze the user context and categorize every meaningful phrase into one "
+    "of two roles: ACTIONABLE_TASK (a discrete activity that requires a time "
+    "block, e.g., 'buy milk', 'deep work') or TEMPORAL_CONSTRAINT (a boundary, "
+    "deadline, or fixed point that limits when tasks can happen, e.g., 'Leave "
+    "by 5 PM', 'Busy until 10 AM'). "
+    "CRITICAL: Do NOT put a Temporal Constraint into the Actionable Task list. "
+    "If the user says 'Leave by 5 PM', that is a constraint, NOT a task to be "
+    "scheduled. Do not create an actionable task called 'Leave'. "
+    "If multiple tasks are requested at the same time, include the time in "
+    "temporal_constraints for EACH task separately (e.g., [\"1 PM\", \"1 PM\"]). "
+    "Differentiate between Hard Deadlines (Leave by, Must end by) and Task "
+    "Preferences (Work from 4 to 6). If a deadline makes a preference "
+    "impossible, the deadline takes absolute priority. "
+    "Only extract items explicitly present in the provided context. "
+    "Do not invent requirements."
 )
 
 _PROJECT_PREFIX = re.compile(r"^\s*project\s+", re.IGNORECASE)
@@ -87,15 +102,34 @@ def extract_metadata(context: str) -> ExtractedMetadata:
         temperature=0,
     )
     content = response.choices[0].message.content or "{}"
-    data = json.loads(content)
-    if isinstance(data, dict):
-        entities = data.get("ground_truth_entities")
+    raw = json.loads(content)
+    data: dict[str, list[str]] = {
+        "temporal_constraints": [],
+        "ground_truth_entities": [],
+        "actionable_tasks": [],
+    }
+    if isinstance(raw, dict):
+        constraints = raw.get("temporal_constraints")
+        entities = raw.get("ground_truth_entities")
+        keywords = raw.get("actionable_tasks")
+        if isinstance(constraints, list):
+            data["temporal_constraints"] = list(constraints)
         if isinstance(entities, list):
-            data["ground_truth_entities"] = _normalize_entities(entities)
-        keywords = data.get("task_keywords")
+            data["ground_truth_entities"] = _normalize_entities(list(entities))
         if isinstance(keywords, list):
-            for required in ("milk", "meeting"):
-                if required not in keywords:
-                    keywords.append(required)
+            data["actionable_tasks"] = list(keywords)
+
+    if data["actionable_tasks"] and data["temporal_constraints"]:
+        boundary_words = {"leave", "until", "by", "before"}
+        constraints_text = " ".join(data["temporal_constraints"]).lower()
+        data["actionable_tasks"] = [
+            keyword
+            for keyword in data["actionable_tasks"]
+            if not (
+                keyword
+                and keyword.lower() in boundary_words
+                and keyword.lower() in constraints_text
+            )
+        ]
 
     return ExtractedMetadata(**data)

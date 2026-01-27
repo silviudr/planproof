@@ -19,10 +19,7 @@ def calculate_overlaps(items: List["PlanItem"]) -> int:
         start = _parse_time(item.start_time)
         end = _parse_time(item.end_time)
         if end <= start:
-            raise ValueError(
-                f"Invalid plan item interval: end_time ({item.end_time}) must be after "
-                f"start_time ({item.start_time})."
-            )
+            continue
         intervals.append((start, end))
 
     overlap_minutes = 0
