@@ -9,13 +9,14 @@ from fastapi.staticfiles import StaticFiles
 
 from planproof_api.config import settings
 from planproof_api.observability.opik import opik
+from opik import config as opik_config
 from planproof_api.routes import router
 
 try:
+    opik_config.update_session_config("project_name", settings.OPIK_PROJECT_NAME)
     opik.configure(
         api_key=settings.OPIK_API_KEY,
         workspace=settings.OPIK_WORKSPACE,
-        project_name=settings.OPIK_PROJECT_NAME,
     )
     print(
         f"OPIK INITIALIZED: {settings.OPIK_WORKSPACE}/{settings.OPIK_PROJECT_NAME}"
