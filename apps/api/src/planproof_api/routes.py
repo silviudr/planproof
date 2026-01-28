@@ -367,12 +367,30 @@ def create_plan(request: PlanRequest) -> PlanResponse:
 
     try:
         opik_context.update_current_trace(
+            metadata={
+                "recall_score": validation.metrics.keyword_recall_score,
+                "hallucination_count": validation.metrics.hallucination_count,
+                "overlap_mins": validation.metrics.overlap_minutes,
+                "variant": request.variant,
+            },
             feedback_scores=[
                 {
                     "name": "plan_validity",
                     "value": 1.0 if validation.status == "pass" else 0.0,
-                }
-            ]
+                },
+                {
+                    "name": "recall_score",
+                    "value": validation.metrics.keyword_recall_score,
+                },
+                {
+                    "name": "hallucination_count",
+                    "value": float(validation.metrics.hallucination_count),
+                },
+                {
+                    "name": "overlap_mins",
+                    "value": float(validation.metrics.overlap_minutes),
+                },
+            ],
         )
     except Exception:
         pass
