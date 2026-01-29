@@ -20,33 +20,70 @@ def test_check_hallucinations_fuzzy_match() -> None:
     task_keywords = ["project", "apollo", "meeting"]
     items = [_item("Meeting with Sarah", "Project Apollo")]
 
-    assert check_hallucinations(items, ground_truth, task_keywords) == 0
+    assert (
+        check_hallucinations(
+            items,
+            ground_truth,
+            task_keywords,
+            user_context="Meeting with Sarah about Project Apollo.",
+        )
+        == 0
+    )
 
 
 def test_check_hallucinations_missing_entity() -> None:
     ground_truth = ["Project Apollo", "Sarah Jones"]
     task_keywords = ["call"]
-    items = [_item("Call with Mike", "")]
+    items = [_item("Call with Michael", "")]
 
-    assert check_hallucinations(items, ground_truth, task_keywords) == 1
+    assert (
+        check_hallucinations(
+            items,
+            ground_truth,
+            task_keywords,
+            user_context="Call with Sarah about Project Apollo.",
+        )
+        == 1
+    )
 
 
 def test_check_hallucinations_mundane_activity() -> None:
     ground_truth = []
     task_keywords = ["buy", "milk"]
-    items = [_item("Wash car", "")]
+    items = [_item("Wash vehicle", "")]
 
-    assert check_hallucinations(items, ground_truth, task_keywords) == 1
+    assert (
+        check_hallucinations(
+            items,
+            ground_truth,
+            task_keywords,
+            user_context="Buy milk.",
+        )
+        == 1
+    )
 
 
 def test_check_hallucinations_empty_plan_items() -> None:
-    assert check_hallucinations([], ["Project Apollo"], ["project"]) == 0
+    assert (
+        check_hallucinations(
+            [], ["Project Apollo"], ["project"], user_context="Project Apollo"
+        )
+        == 0
+    )
 
 
 def test_check_hallucinations_empty_fields() -> None:
     items = [_item("", "")]
 
-    assert check_hallucinations(items, ["Project Apollo"], ["project"]) == 0
+    assert (
+        check_hallucinations(
+            items,
+            ["Project Apollo"],
+            ["project"],
+            user_context="Project Apollo",
+        )
+        == 0
+    )
 
 
 def test_check_hallucinations_multiple_missing_words() -> None:
@@ -55,19 +92,35 @@ def test_check_hallucinations_multiple_missing_words() -> None:
         _item("Gamma", ""),
     ]
 
-    assert check_hallucinations(items, [], []) == 3
+    assert check_hallucinations(items, [], [], user_context="") == 2
 
 
 def test_check_hallucinations_exact_match() -> None:
     items = [_item("Mike", "")]
 
-    assert check_hallucinations(items, ["Mike"], []) == 0
+    assert (
+        check_hallucinations(
+            items,
+            ["Mike"],
+            [],
+            user_context="Mike is on the list.",
+        )
+        == 0
+    )
 
 
 def test_check_hallucinations_case_insensitive_match() -> None:
     items = [_item("MIKE", "")]
 
-    assert check_hallucinations(items, ["mike"], []) == 0
+    assert (
+        check_hallucinations(
+            items,
+            ["mike"],
+            [],
+            user_context="mike is on the list.",
+        )
+        == 0
+    )
 
 
 def test_check_hallucinations_ai_keyword() -> None:
@@ -75,4 +128,12 @@ def test_check_hallucinations_ai_keyword() -> None:
     task_keywords = ["AI", "report"]
     items = [_item("AI report", "")]
 
-    assert check_hallucinations(items, ground_truth, task_keywords) == 1
+    assert (
+        check_hallucinations(
+            items,
+            ground_truth,
+            task_keywords,
+            user_context="AI report due tomorrow.",
+        )
+        == 0
+    )

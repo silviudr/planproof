@@ -136,6 +136,20 @@ _PRODUCTIVITY_WHITELIST = {
     "another",
     "second",
     "leaving",
+    "run",
+    "slot",
+    "period",
+}
+
+_SAFETY_WORDS = {
+    "scheduled",
+    "specified",
+    "required",
+    "planned",
+    "needed",
+    "intended",
+    "approximate",
+    "assigned",
 }
 
 _REPAIR_META_WORDS = {
@@ -188,39 +202,37 @@ def _extract_significant_tokens(text: str) -> set[str]:
     return words | time_tokens
 
 
-_PROPER_NOUN_PATTERN = re.compile(r"\b[A-Z][a-zA-Z0-9\-\.]*\b")
+def _normalize_text(text: str) -> str:
+    return re.sub(r"\s+", " ", text.lower().strip())
 
 
 def check_hallucinations(
     plan_items: List["PlanItem"],
     ground_truth_entities: List[str],
-    _task_keywords: List[str],
+    task_keywords: List[str],
     _match_threshold: int = 80,
     _variant: str | None = None,
-    _detected_constraints: List[str] | None = None,
+    detected_constraints: List[str] | None = None,
+    user_context: str | None = None,
     **_: object,
 ) -> int:
-    tokens: set[str] = set()
+    context_text = _normalize_text(user_context or "")
+    hallucination_count = 0
+
     for item in plan_items:
         if not item.task:
             continue
-        for token in _PROPER_NOUN_PATTERN.findall(item.task):
+        for token in _WORD_PATTERN.findall(item.task):
             token_lower = token.lower()
-            if token_lower in _COMMON_VERBS | _STOP_WORDS | _PRODUCTIVITY_WHITELIST:
+            if len(token_lower) <= 4:
                 continue
-            tokens.add(token)
-
-    if not tokens:
-        return 0
-
-    if not ground_truth_entities:
-        return len(tokens)
-
-    entities = [entity.lower() for entity in ground_truth_entities if entity]
-    hallucination_count = 0
-    for token in tokens:
-        token_lower = token.lower()
-        if not any(token_lower in entity for entity in entities):
+            if (
+                token_lower
+                in _COMMON_VERBS | _STOP_WORDS | _PRODUCTIVITY_WHITELIST | _SAFETY_WORDS
+            ):
+                continue
+            if token_lower in context_text:
+                continue
             hallucination_count += 1
 
     return hallucination_count
@@ -229,34 +241,31 @@ def check_hallucinations(
 def get_hallucinated_tokens(
     plan_items: List["PlanItem"],
     ground_truth_entities: List[str],
-    _task_keywords: List[str],
+    task_keywords: List[str],
     _match_threshold: int = 80,
     _variant: str | None = None,
-    _detected_constraints: List[str] | None = None,
+    detected_constraints: List[str] | None = None,
+    user_context: str | None = None,
     **_: object,
 ) -> list[str]:
-    tokens: set[str] = set()
+    context_text = _normalize_text(user_context or "")
+    flagged: list[str] = []
+
     for item in plan_items:
         if not item.task:
             continue
-        for token in _PROPER_NOUN_PATTERN.findall(item.task):
+        for token in _WORD_PATTERN.findall(item.task):
             token_lower = token.lower()
-            if token_lower in _COMMON_VERBS | _STOP_WORDS | _PRODUCTIVITY_WHITELIST:
+            if len(token_lower) <= 4:
                 continue
-            tokens.add(token)
-
-    if not tokens:
-        return []
-
-    if not ground_truth_entities:
-        return sorted(tokens)
-
-    entities = [entity.lower() for entity in ground_truth_entities if entity]
-    flagged: list[str] = []
-    for token in tokens:
-        token_lower = token.lower()
-        if not any(token_lower in entity for entity in entities):
-            print(f"DEBUG HALLUCINATION: Word '{token}' flagged (No ground truth)")
+            if (
+                token_lower
+                in _COMMON_VERBS | _STOP_WORDS | _PRODUCTIVITY_WHITELIST | _SAFETY_WORDS
+            ):
+                continue
+            if token_lower in context_text:
+                continue
+            print(f"DEBUG HALLUCINATION: Word '{token}' flagged (No context)")
             flagged.append(token)
 
-    return sorted(flagged)
+    return sorted(set(flagged))

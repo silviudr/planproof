@@ -115,6 +115,7 @@ def _validate_plan(
     plan: list[PlanItem],
     metadata: ExtractedMetadata,
     current_time: str,
+    user_context: str | None = None,
     match_threshold: int = 80,
     variant: str | None = None,
 ) -> PlanValidation:
@@ -144,6 +145,7 @@ def _validate_plan(
         match_threshold=match_threshold,
         variant=variant,
         detected_constraints=metadata.temporal_constraints,
+        user_context=user_context,
     )
     keyword_recall_score = calculate_recall(
         plan, metadata.actionable_tasks
@@ -187,6 +189,7 @@ def _validate_plan(
     #     errors.append("human_feasibility_flags > 0")
 
     status = "pass" if not errors else "fail"
+    validity_score = 1 if str(status).lower() == "pass" else 0
     metrics = ValidationMetrics(
         constraint_violation_count=constraint_violation_count,
         overlap_minutes=overlap_minutes,
@@ -202,6 +205,7 @@ def _validate_plan(
                 "overlap_minutes": overlap_minutes,
                 "hallucination_count": hallucination_count,
                 "keyword_recall_score": keyword_recall_score,
+                "plan_validity": validity_score,
                 "human_feasibility_flags": human_feasibility_flags
                 + zero_duration_flags,
             }
@@ -327,7 +331,12 @@ def create_plan(request: PlanRequest) -> PlanResponse:
         plan = _normalize_timeboxes(plan)
         match_threshold = 70 if request.variant == "v3_agentic_repair" else 80
         validation = _validate_plan(
-            plan, metadata, local_current_time, match_threshold, request.variant
+            plan,
+            metadata,
+            local_current_time,
+            request.context,
+            match_threshold,
+            request.variant,
         )
         missing_keywords = _missing_keywords(plan, metadata.actionable_tasks)
         if validation.status == "fail" and request.variant == "v3_agentic_repair":
@@ -348,6 +357,7 @@ def create_plan(request: PlanRequest) -> PlanResponse:
                     plan,
                     metadata,
                     local_current_time,
+                    request.context,
                     match_threshold,
                     request.variant,
                 )
@@ -365,22 +375,24 @@ def create_plan(request: PlanRequest) -> PlanResponse:
                     errors=[str(exc)],
                 )
 
+    validity_score = 1 if str(validation.status).lower() == "pass" else 0
+    print(
+        "DEBUG OPIK: Mapping status "
+        f"'{validation.status}' to score {validity_score}"
+    )
     try:
         opik_context.update_current_trace(
             metadata={
-                "recall_score": validation.metrics.keyword_recall_score,
+                "recall_score": float(validation.metrics.keyword_recall_score),
                 "hallucination_count": validation.metrics.hallucination_count,
                 "overlap_mins": validation.metrics.overlap_minutes,
                 "variant": request.variant,
             },
             feedback_scores=[
-                {
-                    "name": "plan_validity",
-                    "value": 1.0 if validation.status == "pass" else 0.0,
-                },
+                {"name": "plan_validity", "value": validity_score},
                 {
                     "name": "recall_score",
-                    "value": validation.metrics.keyword_recall_score,
+                    "value": float(validation.metrics.keyword_recall_score),
                 },
                 {
                     "name": "hallucination_count",

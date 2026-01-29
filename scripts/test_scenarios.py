@@ -53,6 +53,16 @@ URL = "http://localhost:10000/api/plan"
 
 comparison_scenarios = [
     (
+        "Current time is 8:00 AM. I have a Meeting at 10:00 AM. I have a Gym session at 1:00 PM. I have a Grocery run at 4:00 PM.",
+        "v1_naive",
+        "Control Case: Expected pass for baseline"
+    ),
+    (
+        "Current time is 8:00 AM. I have a Meeting at 10:00 AM. I have a Gym session at 1:00 PM. I have a Grocery run at 4:00 PM.",
+        "v3_agentic_repair",
+        "Control Case: Expected pass for baseline"
+    ),        
+    (
         "Meeting at 1 PM, meeting at 1 PM, buy milk",
         "v1_naive",
         "Expected fail (overlap; no repair)",
