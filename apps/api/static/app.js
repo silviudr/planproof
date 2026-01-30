@@ -1201,7 +1201,8 @@ async function generatePlan() {
     renderValidation(data.validation || null, traceId);
     
     // Render extracted metadata (PR 2.1)
-    const constraints = data.extracted_metadata?.detected_constraints || [];
+    // Backend schema uses 'temporal_constraints', not 'detected_constraints'
+    const constraints = data.extracted_metadata?.temporal_constraints || [];
     renderConstraints(constraints);
     
     // Render repair log (PR 2.3)
