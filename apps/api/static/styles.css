@@ -1299,15 +1299,18 @@ body {
 }
 
 /* --------------------------------------------------------------------------
-   Terminal Console (Technical Logs)
+   Terminal Console (Engine Logs)
    -------------------------------------------------------------------------- */
 .terminal-console {
-  margin-top: var(--space-lg);
-  background-color: #0a0a0a;
+  margin-bottom: var(--space-lg);
+  background-color: #050505;
   border: 1px solid #1a1a1a;
   border-radius: var(--radius-md);
   overflow: hidden;
   position: relative;
+  height: 200px;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Scan-line overlay effect */
@@ -1320,8 +1323,8 @@ body {
   bottom: 0;
   background: repeating-linear-gradient(
     0deg,
-    rgba(0, 0, 0, 0.15),
-    rgba(0, 0, 0, 0.15) 1px,
+    rgba(0, 0, 0, 0.12),
+    rgba(0, 0, 0, 0.12) 1px,
     transparent 1px,
     transparent 2px
   );
@@ -1339,7 +1342,7 @@ body {
   bottom: 0;
   background: radial-gradient(
     ellipse at center,
-    rgba(16, 185, 129, 0.03) 0%,
+    rgba(16, 185, 129, 0.02) 0%,
     transparent 70%
   );
   pointer-events: none;
@@ -1351,45 +1354,50 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: var(--space-xs) var(--space-sm);
-  background-color: #141414;
+  background-color: #0a0a0a;
   border-bottom: 1px solid #1a1a1a;
+  flex-shrink: 0;
 }
 
 .terminal-title {
   font-family: var(--font-system);
-  font-size: 0.625rem;
-  font-weight: 600;
+  font-size: 0.5625rem;
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: #10b981;
+  letter-spacing: 0.15em;
+  color: #4a4a4a;
 }
 
 .terminal-status {
   font-family: var(--font-system);
-  font-size: 0.5625rem;
+  font-size: 0.5rem;
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: #10b981;
+  padding: 2px 6px;
+  background-color: rgba(16, 185, 129, 0.1);
+  border-radius: 2px;
   animation: status-blink 2s ease-in-out infinite;
 }
 
 @keyframes status-blink {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  50% { opacity: 0.6; }
 }
 
 .terminal-output {
   padding: var(--space-sm);
-  min-height: 100px;
-  max-height: 200px;
+  flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   font-family: var(--font-system);
   font-size: 0.6875rem;
-  line-height: 1.6;
+  line-height: 1.5;
   color: #10b981;
   position: relative;
   z-index: 3;
+  scroll-behavior: smooth;
 }
 
 /* Custom scrollbar for terminal */
@@ -1402,7 +1410,7 @@ body {
 }
 
 .terminal-output::-webkit-scrollbar-thumb {
-  background: #1a1a1a;
+  background: #1f1f1f;
   border-radius: 2px;
 }
 
@@ -1413,9 +1421,10 @@ body {
 /* Terminal log lines */
 .terminal-line {
   display: block;
-  padding: 1px 0;
+  padding: 2px 0;
   opacity: 0;
-  animation: line-appear 0.2s ease-out forwards;
+  animation: line-appear 0.15s ease-out forwards;
+  word-break: break-word;
 }
 
 @keyframes line-appear {
@@ -1446,7 +1455,7 @@ body {
 .terminal-cursor {
   display: inline-block;
   width: 6px;
-  height: 12px;
+  height: 11px;
   background-color: #10b981;
   animation: cursor-blink 1s step-end infinite;
   vertical-align: middle;
@@ -1461,6 +1470,7 @@ body {
 /* Terminal states */
 .terminal-console--processing .terminal-status {
   color: #f59e0b;
+  background-color: rgba(245, 158, 11, 0.1);
   animation: status-pulse 0.5s ease-in-out infinite;
 }
 
@@ -1471,11 +1481,13 @@ body {
 
 .terminal-console--complete .terminal-status {
   color: #10b981;
+  background-color: rgba(16, 185, 129, 0.1);
   animation: none;
 }
 
 .terminal-console--error .terminal-status {
   color: #f43f5e;
+  background-color: rgba(244, 63, 94, 0.1);
   animation: none;
 }
 
@@ -1483,6 +1495,7 @@ body {
 .terminal-empty {
   color: #3f3f46;
   font-style: italic;
+  font-size: 0.625rem;
 }
 
 /* --------------------------------------------------------------------------

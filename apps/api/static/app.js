@@ -328,7 +328,7 @@ function resetTerminalConsole() {
   }
 
   if (output) {
-    output.innerHTML = '<span class="terminal-empty">Awaiting system diagnostics...</span><span class="terminal-cursor"></span>';
+    output.innerHTML = '<span class="terminal-empty">Awaiting engine logs...</span><span class="terminal-cursor"></span>';
   }
 
   if (status) {
@@ -383,10 +383,10 @@ function renderTerminalLogs(logs, traceId = null) {
       console.classList.add('terminal-console--complete');
     }
     if (output) {
-      output.innerHTML = '<span class="terminal-empty">No diagnostic logs available.</span><span class="terminal-cursor"></span>';
+      output.innerHTML = '<span class="terminal-empty">No engine logs available.</span><span class="terminal-cursor"></span>';
     }
     if (status) {
-      status.textContent = 'COMPLETE';
+      status.textContent = 'IDLE';
     }
     return;
   }
