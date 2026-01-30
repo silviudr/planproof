@@ -305,6 +305,7 @@ def _normalize_current_time(current_time: str, timezone: str) -> str:
 @router.post("/api/plan", response_model=PlanResponse)
 @opik.track(name="plan_request")
 def create_plan(request: PlanRequest) -> PlanResponse:
+    technical_logs: list[str] = ["[SYSTEM] Sandwich Architecture initialized."]
     try:
         opik_context.update_current_trace(metadata={"variant": request.variant})
     except Exception:
@@ -313,6 +314,7 @@ def create_plan(request: PlanRequest) -> PlanResponse:
     local_current_time = _normalize_current_time(
         request.current_time, request.timezone
     )
+    technical_logs.append("[EXTRACTOR] Identifying semantic intent anchors...")
     metadata = extract_metadata(request.context)
     plan: list[PlanItem] = []
     assumptions: list[str] = []
@@ -325,6 +327,7 @@ def create_plan(request: PlanRequest) -> PlanResponse:
             request, metadata, local_current_time
         )
     except PlanGenerationError as exc:
+        technical_logs.append(f"[ALERT] Logistical conflict detected: {exc}")
         validation = PlanValidation(
             status="fail",
             metrics=ValidationMetrics(
@@ -339,6 +342,9 @@ def create_plan(request: PlanRequest) -> PlanResponse:
     else:
         plan = _normalize_timeboxes(plan)
         match_threshold = 70 if request.variant == "v3_agentic_repair" else 80
+        technical_logs.append(
+            "[VALIDATOR] Running deterministic 24h-time-math engine..."
+        )
         validation = _validate_plan(
             plan,
             metadata,
@@ -350,9 +356,9 @@ def create_plan(request: PlanRequest) -> PlanResponse:
         missing_keywords = _missing_keywords(plan, metadata.actionable_tasks)
         if validation.status == "fail" and request.variant == "v3_agentic_repair":
             repair_attempted = True
-            # Preserve original plan and validation in case repair fails
-            original_plan = plan
-            original_validation = validation
+            technical_logs.append(
+                "[REPAIR] Triggering 1-shot self-correction agent...."
+            )
             try:
                 repaired_plan, repaired_assumptions, repaired_questions = _repair_plan(
                     request,
@@ -381,13 +387,19 @@ def create_plan(request: PlanRequest) -> PlanResponse:
                 questions = repaired_questions
                 validation = repaired_validation
             except PlanGenerationError as exc:
-                # Repair failed: keep original plan and validation, add repair error
-                plan = original_plan
+                technical_logs.append(
+                    f"[ALERT] Logistical conflict detected: {exc}"
+                )
                 validation = PlanValidation(
                     status=original_validation.status,
                     metrics=original_validation.metrics,
                     errors=list(original_validation.errors) + [f"Repair failed: {exc}"],
                 )
+        if validation.status == "fail":
+            technical_logs.append(
+                "[ALERT] Logistical conflict detected: "
+                f"{'; '.join(validation.errors)}"
+            )
 
     validity_score = 1 if str(validation.status).lower() == "pass" else 0
     print(
@@ -436,6 +448,9 @@ def create_plan(request: PlanRequest) -> PlanResponse:
             pass
         trace_id = fallback_id
     print(f"DEBUG: Opik Trace ID: {trace_id}")
+    technical_logs.append(
+        f"[OPIK] Trace logged to silviu-druma workspace (ID: {trace_id})."
+    )
 
     return PlanResponse(
         plan=plan,
@@ -450,4 +465,5 @@ def create_plan(request: PlanRequest) -> PlanResponse:
             variant=request.variant,
             trace_id=trace_id,
         ),
+        technical_logs=technical_logs,
     )

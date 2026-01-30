@@ -82,3 +82,4 @@ class PlanResponse(BaseModel):
     confidence: Literal["low", "medium", "high"]
     validation: PlanValidation
     debug: DebugInfo
+    technical_logs: list[StrictStr]
