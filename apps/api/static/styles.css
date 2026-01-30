@@ -1258,6 +1258,234 @@ body {
 }
 
 /* --------------------------------------------------------------------------
+   Trace Log Modal (PR 4.2)
+   -------------------------------------------------------------------------- */
+.trace-log-modal {
+  display: none;
+  position: relative;
+  margin-top: var(--space-md);
+  background: #0a0a0a;
+  color: #a3e635;
+  font-family: var(--font-system);
+  font-size: 0.85rem;
+  border-radius: var(--radius-md);
+  box-shadow: 0 2px 16px rgba(0,0,0,0.7);
+  padding: var(--space-lg);
+  white-space: pre-line;
+  z-index: 100;
+  min-height: 120px;
+  max-width: 100%;
+  word-break: break-word;
+}
+
+.trace-log-modal--visible {
+  display: block;
+}
+
+.trace-log-modal--hidden {
+  display: none;
+}
+
+.trace-log-modal .trace-log-label {
+  color: #a3e635;
+  font-weight: bold;
+  letter-spacing: 0.05em;
+}
+
+.trace-log-modal .trace-log-value {
+  color: #e0e0e0;
+  font-family: var(--font-system);
+  font-weight: 400;
+}
+
+/* --------------------------------------------------------------------------
+   Terminal Console (Technical Logs)
+   -------------------------------------------------------------------------- */
+.terminal-console {
+  margin-top: var(--space-lg);
+  background-color: #0a0a0a;
+  border: 1px solid #1a1a1a;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  position: relative;
+}
+
+/* Scan-line overlay effect */
+.terminal-console::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.15),
+    rgba(0, 0, 0, 0.15) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* CRT glow effect */
+.terminal-console::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(16, 185, 129, 0.03) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+.terminal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-xs) var(--space-sm);
+  background-color: #141414;
+  border-bottom: 1px solid #1a1a1a;
+}
+
+.terminal-title {
+  font-family: var(--font-system);
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #10b981;
+}
+
+.terminal-status {
+  font-family: var(--font-system);
+  font-size: 0.5625rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #10b981;
+  animation: status-blink 2s ease-in-out infinite;
+}
+
+@keyframes status-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.terminal-output {
+  padding: var(--space-sm);
+  min-height: 100px;
+  max-height: 200px;
+  overflow-y: auto;
+  font-family: var(--font-system);
+  font-size: 0.6875rem;
+  line-height: 1.6;
+  color: #10b981;
+  position: relative;
+  z-index: 3;
+}
+
+/* Custom scrollbar for terminal */
+.terminal-output::-webkit-scrollbar {
+  width: 4px;
+}
+
+.terminal-output::-webkit-scrollbar-track {
+  background: #0a0a0a;
+}
+
+.terminal-output::-webkit-scrollbar-thumb {
+  background: #1a1a1a;
+  border-radius: 2px;
+}
+
+.terminal-output::-webkit-scrollbar-thumb:hover {
+  background: #2a2a2a;
+}
+
+/* Terminal log lines */
+.terminal-line {
+  display: block;
+  padding: 1px 0;
+  opacity: 0;
+  animation: line-appear 0.2s ease-out forwards;
+}
+
+@keyframes line-appear {
+  from {
+    opacity: 0;
+    transform: translateX(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Opik trace links */
+.terminal-line--opik {
+  color: #0ea5e9;
+  cursor: pointer;
+  transition: color var(--transition-fast), text-shadow var(--transition-fast);
+}
+
+.terminal-line--opik:hover {
+  color: #38bdf8;
+  text-shadow: 0 0 8px rgba(14, 165, 233, 0.5);
+  text-decoration: underline;
+}
+
+/* Blinking cursor */
+.terminal-cursor {
+  display: inline-block;
+  width: 6px;
+  height: 12px;
+  background-color: #10b981;
+  animation: cursor-blink 1s step-end infinite;
+  vertical-align: middle;
+  margin-left: 2px;
+}
+
+@keyframes cursor-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* Terminal states */
+.terminal-console--processing .terminal-status {
+  color: #f59e0b;
+  animation: status-pulse 0.5s ease-in-out infinite;
+}
+
+@keyframes status-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.terminal-console--complete .terminal-status {
+  color: #10b981;
+  animation: none;
+}
+
+.terminal-console--error .terminal-status {
+  color: #f43f5e;
+  animation: none;
+}
+
+/* Empty state message */
+.terminal-empty {
+  color: #3f3f46;
+  font-style: italic;
+}
+
+/* --------------------------------------------------------------------------
    Utility Classes
    -------------------------------------------------------------------------- */
 .mono {

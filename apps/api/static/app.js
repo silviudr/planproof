@@ -59,6 +59,13 @@ const elements = {
   // Opik Trace Link (PR 4.1)
   traceSection: document.getElementById('trace-section'),
   traceLink: document.getElementById('trace-link'),
+  traceLogBtn: document.getElementById('trace-log-btn'),
+  traceLogModal: document.getElementById('trace-log-modal'),
+
+  // Terminal Console (Technical Logs)
+  terminalConsole: document.getElementById('terminal-console'),
+  terminalOutput: document.getElementById('terminal-output'),
+  terminalStatus: document.querySelector('.terminal-status'),
 };
 
 // ==========================================================================
@@ -248,6 +255,229 @@ function renderTraceLink(enabled, traceUrl = null) {
   // Update URL if provided (for future per-trace linking)
   if (traceUrl) {
     link.href = traceUrl;
+  }
+}
+
+/**
+ * Enables or disables the Opik trace log button and manages modal display.
+ * @param {boolean} enabled - Whether the trace log button should be clickable
+ * @param {Object|null} logData - Optional log data object for rendering in the modal
+ */
+function renderTraceLogButton(enabled, logData = null) {
+  const btn = elements.traceLogBtn;
+  const modal = elements.traceLogModal;
+  if (!btn || !modal) return;
+
+  if (!enabled) {
+    btn.classList.add('btn-trace--disabled');
+    btn.setAttribute('aria-disabled', 'true');
+    btn.onclick = null;
+    modal.classList.add('trace-log-modal--hidden');
+    modal.classList.remove('trace-log-modal--visible');
+    modal.innerHTML = '';
+    return;
+  }
+
+  btn.classList.remove('btn-trace--disabled');
+  btn.setAttribute('aria-disabled', 'false');
+  btn.onclick = () => {
+    if (modal.classList.contains('trace-log-modal--visible')) {
+      modal.classList.remove('trace-log-modal--visible');
+      modal.classList.add('trace-log-modal--hidden');
+      return;
+    }
+    // Render log content
+    modal.innerHTML = `
+      <div class="trace-log-label">System Trace ID:</div>
+      <div class="trace-log-value">${logData?.trace_id ?? '—'}</div>
+      <div class="trace-log-label">Model:</div>
+      <div class="trace-log-value">gpt-4o (Planner)</div>
+      <div class="trace-log-label">Validation Engine:</div>
+      <div class="trace-log-value">PlanProof-Py-Validator v1.2</div>
+      <div class="trace-log-label">Calculated Recall:</div>
+      <div class="trace-log-value">${typeof logData?.recall === 'number' ? (logData.recall * 100).toFixed(1) + '%' : '—'}</div>
+      <div class="trace-log-label">Repair Attempted:</div>
+      <div class="trace-log-value">${logData?.repair_attempted ? 'Yes' : 'No'}</div>
+    `;
+    modal.classList.remove('trace-log-modal--hidden');
+    modal.classList.add('trace-log-modal--visible');
+  };
+}
+
+// ==========================================================================
+// Terminal Console (Technical Logs)
+// ==========================================================================
+
+let terminalAnimationTimer = null;
+
+/**
+ * Resets the terminal console to its initial state.
+ */
+function resetTerminalConsole() {
+  const console = elements.terminalConsole;
+  const output = elements.terminalOutput;
+  const status = elements.terminalStatus;
+
+  if (terminalAnimationTimer) {
+    clearTimeout(terminalAnimationTimer);
+    terminalAnimationTimer = null;
+  }
+
+  if (console) {
+    console.classList.remove('terminal-console--processing', 'terminal-console--complete', 'terminal-console--error');
+  }
+
+  if (output) {
+    output.innerHTML = '<span class="terminal-empty">Awaiting system diagnostics...</span><span class="terminal-cursor"></span>';
+  }
+
+  if (status) {
+    status.textContent = 'READY';
+  }
+}
+
+/**
+ * Sets the terminal to processing state.
+ */
+function setTerminalProcessing() {
+  const console = elements.terminalConsole;
+  const output = elements.terminalOutput;
+  const status = elements.terminalStatus;
+
+  if (console) {
+    console.classList.remove('terminal-console--complete', 'terminal-console--error');
+    console.classList.add('terminal-console--processing');
+  }
+
+  if (output) {
+    output.innerHTML = '<span class="terminal-cursor"></span>';
+  }
+
+  if (status) {
+    status.textContent = 'PROCESSING';
+  }
+}
+
+/**
+ * Renders technical logs with a typing animation effect.
+ * Each log line appears one-by-one with a 300ms delay.
+ * Lines starting with [OPIK] become clickable links to the Opik trace.
+ * @param {string[]|null} logs - Array of log strings from technical_logs
+ * @param {string|null} traceId - The trace ID for building Opik links
+ */
+function renderTerminalLogs(logs, traceId = null) {
+  const console = elements.terminalConsole;
+  const output = elements.terminalOutput;
+  const status = elements.terminalStatus;
+
+  // Clear any existing animation
+  if (terminalAnimationTimer) {
+    clearTimeout(terminalAnimationTimer);
+    terminalAnimationTimer = null;
+  }
+
+  // Handle empty logs
+  if (!logs || logs.length === 0) {
+    if (console) {
+      console.classList.remove('terminal-console--processing');
+      console.classList.add('terminal-console--complete');
+    }
+    if (output) {
+      output.innerHTML = '<span class="terminal-empty">No diagnostic logs available.</span><span class="terminal-cursor"></span>';
+    }
+    if (status) {
+      status.textContent = 'COMPLETE';
+    }
+    return;
+  }
+
+  // Start with empty output and cursor
+  if (output) {
+    output.innerHTML = '';
+  }
+
+  let currentIndex = 0;
+
+  /**
+   * Animates the next log line.
+   */
+  function animateNextLine() {
+    if (currentIndex >= logs.length) {
+      // Animation complete
+      if (console) {
+        console.classList.remove('terminal-console--processing');
+        console.classList.add('terminal-console--complete');
+      }
+      if (status) {
+        status.textContent = 'COMPLETE';
+      }
+      // Add final cursor
+      if (output) {
+        const cursor = document.createElement('span');
+        cursor.className = 'terminal-cursor';
+        output.appendChild(cursor);
+      }
+      return;
+    }
+
+    const logText = logs[currentIndex];
+    const lineElement = document.createElement('span');
+    lineElement.className = 'terminal-line';
+
+    // Check if this is an Opik log line
+    if (logText.startsWith('[OPIK]') && traceId) {
+      lineElement.classList.add('terminal-line--opik');
+      lineElement.textContent = logText;
+      lineElement.title = 'Click to view trace in Opik';
+      lineElement.onclick = () => {
+        const opikUrl = `https://www.comet.com/opik/silviu-druma/projects/Hackaton/traces/${traceId}`;
+        window.open(opikUrl, '_blank', 'noopener,noreferrer');
+      };
+    } else {
+      lineElement.textContent = logText;
+    }
+
+    if (output) {
+      output.appendChild(lineElement);
+      // Auto-scroll to bottom
+      output.scrollTop = output.scrollHeight;
+    }
+
+    currentIndex++;
+
+    // Schedule next line with 300ms delay
+    terminalAnimationTimer = setTimeout(animateNextLine, 300);
+  }
+
+  // Start the animation
+  animateNextLine();
+}
+
+/**
+ * Sets the terminal to error state.
+ * @param {string} message - Error message to display
+ */
+function setTerminalError(message) {
+  const console = elements.terminalConsole;
+  const output = elements.terminalOutput;
+  const status = elements.terminalStatus;
+
+  if (terminalAnimationTimer) {
+    clearTimeout(terminalAnimationTimer);
+    terminalAnimationTimer = null;
+  }
+
+  if (console) {
+    console.classList.remove('terminal-console--processing', 'terminal-console--complete');
+    console.classList.add('terminal-console--error');
+  }
+
+  if (output) {
+    output.innerHTML = `<span class="terminal-line" style="color: #f43f5e;">[ERROR] ${escapeHtml(message)}</span><span class="terminal-cursor"></span>`;
+  }
+
+  if (status) {
+    status.textContent = 'ERROR';
   }
 }
 
@@ -591,14 +821,19 @@ function resetInsights() {
  * Renders the full validation state (status badge, checklist, metrics grid, coverage, errors).
  * @param {Object|null} validation - The validation object from API response
  */
-function renderValidation(validation) {
+function renderValidation(validation, traceId = null)  {
   if (!validation) {
     renderStatusBadge('pending');
     renderChecklist(null);
     renderMetricsGrid(null);
     renderCoverage(null);
     renderErrors([]);
-    renderTraceLink(false);
+    // Show trace link after validation is rendered (PR 4.1)
+    let traceUrl = null;
+    if (traceId) {
+      traceUrl = `https://www.comet.com/opik/silviu-druma/projects/Hackaton/traces/${traceId}`;
+    }
+    renderTraceLink(true, traceUrl);
     return;
   }
 
@@ -623,6 +858,7 @@ function renderValidation(validation) {
   
   // Show trace link after validation is rendered (PR 4.1)
   renderTraceLink(true);
+  renderTraceLogButton(false);
 }
 
 /**
@@ -827,20 +1063,20 @@ function showLoadingState() {
     btn.dataset.originalText = btn.textContent;
     btn.textContent = 'Analyzing Context...';
   }
-  
+
   // Show loading spinner in timeline
   const loading = elements.timelineLoading;
   const empty = document.querySelector('.timeline-empty');
   if (loading) loading.classList.add('timeline-loading--active');
   if (empty) empty.style.display = 'none';
-  
+
   // Clear existing timeline items
   const container = elements.timelineContainer;
   if (container) {
     const items = container.querySelectorAll('.timeline-item');
     items.forEach(item => item.remove());
   }
-  
+
   // Cycle through loading messages
   let msgIndex = 0;
   if (elements.loadingMessage) {
@@ -850,6 +1086,9 @@ function showLoadingState() {
       elements.loadingMessage.textContent = LOADING_MESSAGES[msgIndex];
     }, 2000);
   }
+
+  // Set terminal to processing state
+  setTerminalProcessing();
 }
 
 /**
@@ -958,7 +1197,8 @@ async function generatePlan() {
     
     // Render the response
     renderTimeline(data.plan || [], isRejected);
-    renderValidation(data.validation || null);
+    const traceId = data?.debug?.trace_id;
+    renderValidation(data.validation || null, traceId);
     
     // Render extracted metadata (PR 2.1)
     const constraints = data.extracted_metadata?.detected_constraints || [];
@@ -970,17 +1210,24 @@ async function generatePlan() {
     // Render assumptions & questions (PR 3.4)
     renderAssumptions(data.assumptions || null);
     renderQuestions(data.questions || null);
-    
+
+    // Render terminal console with technical logs
+    const technicalLogs = data.technical_logs || data.debug?.technical_logs || [];
+    renderTerminalLogs(technicalLogs, traceId);
+
     // Hide loading state (PR 3.1)
     hideLoadingState();
 
   } catch (error) {
     console.error('Failed to generate plan:', error);
     hideLoadingState();
-    
+
     // Show friendly error in sidebar (PR 3.2)
     renderApiError(error.message);
-    
+
+    // Set terminal to error state
+    setTerminalError(error.message);
+
     // Reset timeline to empty state
     resetTimeline();
   }
@@ -1014,6 +1261,11 @@ window.PlanProof = {
   renderTraceLink,
   generatePlan,
   formatTime,
+  // Terminal Console
+  resetTerminalConsole,
+  setTerminalProcessing,
+  renderTerminalLogs,
+  setTerminalError,
 };
 
 // ==========================================================================
@@ -1027,6 +1279,7 @@ document.addEventListener('DOMContentLoaded', () => {
   resetCoverage();
   resetRepairLog();
   resetInsights();
+  resetTerminalConsole();
 
   // Set default current time to now
   const currentTimeInput = elements.currentTime;
