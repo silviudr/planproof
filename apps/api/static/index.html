@@ -237,7 +237,7 @@
         </div>
         
         <!-- Opik Trace Link (PR 4.1) -->
-        <div id="trace-section" class="trace-section">
+        <!-- <div id="trace-section" class="trace-section">
           <a 
             id="trace-link" 
             href="https://www.comet.com/opik/silviu-druma/projects/Hackaton" 
@@ -251,6 +251,30 @@
             <span class="trace-text">View Technical Trace</span>
             <span class="trace-external">↗</span>
           </a>
+        </div> -->
+
+        <!-- Validation Log Button (New) -->
+        <button
+          id="trace-log-btn"
+          class="btn-trace btn-trace--disabled"
+          title="Generate a plan first to view the validation log."
+          aria-disabled="true"
+          type="button"
+        >
+          <span class="trace-icon">📋</span>
+          <span class="trace-text">View Validation Log</span>
+        </button>
+        <div id="trace-log-modal" class="trace-log-modal trace-log-modal--hidden"></div>
+
+        <!-- Terminal Console (Technical Logs) -->
+        <div id="terminal-console" class="terminal-console">
+          <div class="terminal-header">
+            <span class="terminal-title">System Diagnostics</span>
+            <span class="terminal-status">READY</span>
+          </div>
+          <div id="terminal-output" class="terminal-output">
+            <span class="terminal-cursor"></span>
+          </div>
         </div>
       </aside>
     </main>
