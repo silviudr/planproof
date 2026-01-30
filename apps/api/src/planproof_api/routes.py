@@ -283,14 +283,23 @@ def _repair_plan(
 
 
 def _normalize_current_time(current_time: str, timezone: str) -> str:
+    """Normalize current_time to a timezone-aware ISO-8601 string.
+
+    If the incoming time is naive (no timezone info), assume it is already
+    in the specified local timezone - NOT UTC. This matches how the UI sends
+    times from datetime-local inputs.
+    """
     current_dt = isoparse(current_time)
     local_tz = tz.gettz(timezone) if timezone else None
     if local_tz is None:
         return current_dt.isoformat()
     if current_dt.tzinfo is None:
-        current_dt = current_dt.replace(tzinfo=tz.UTC)
-    local_dt = current_dt.astimezone(local_tz)
-    return local_dt.isoformat()
+        # Naive time: assume it's already in the user's local timezone
+        current_dt = current_dt.replace(tzinfo=local_tz)
+    else:
+        # Time has timezone info: convert to local timezone
+        current_dt = current_dt.astimezone(local_tz)
+    return current_dt.isoformat()
 
 
 @router.post("/api/plan", response_model=PlanResponse)
@@ -341,8 +350,11 @@ def create_plan(request: PlanRequest) -> PlanResponse:
         missing_keywords = _missing_keywords(plan, metadata.actionable_tasks)
         if validation.status == "fail" and request.variant == "v3_agentic_repair":
             repair_attempted = True
+            # Preserve original plan and validation in case repair fails
+            original_plan = plan
+            original_validation = validation
             try:
-                plan, assumptions, questions = _repair_plan(
+                repaired_plan, repaired_assumptions, repaired_questions = _repair_plan(
                     request,
                     metadata,
                     plan,
@@ -352,27 +364,29 @@ def create_plan(request: PlanRequest) -> PlanResponse:
                     missing_keywords,
                     validation.metrics.constraint_violation_count,
                 )
-                plan = _normalize_timeboxes(plan)
-                validation = _validate_plan(
-                    plan,
+                repaired_plan = _normalize_timeboxes(repaired_plan)
+                repaired_validation = _validate_plan(
+                    repaired_plan,
                     metadata,
                     local_current_time,
                     request.context,
                     match_threshold,
                     request.variant,
                 )
-                repair_success = validation.status == "pass"
+                # Only use repaired plan if repair succeeded or improved metrics
+                repair_success = repaired_validation.status == "pass"
+                # Always use repaired plan (even if still failing) as it may be improved
+                plan = repaired_plan
+                assumptions = repaired_assumptions
+                questions = repaired_questions
+                validation = repaired_validation
             except PlanGenerationError as exc:
+                # Repair failed: keep original plan and validation, add repair error
+                plan = original_plan
                 validation = PlanValidation(
-                    status="fail",
-                    metrics=ValidationMetrics(
-                        constraint_violation_count=0,
-                        overlap_minutes=0,
-                        hallucination_count=0,
-                        keyword_recall_score=0.0,
-                        human_feasibility_flags=0,
-                    ),
-                    errors=[str(exc)],
+                    status=original_validation.status,
+                    metrics=original_validation.metrics,
+                    errors=list(original_validation.errors) + [f"Repair failed: {exc}"],
                 )
 
     validity_score = 1 if str(validation.status).lower() == "pass" else 0
