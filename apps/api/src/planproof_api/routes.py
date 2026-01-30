@@ -151,10 +151,11 @@ def _validate_plan(
         plan, metadata.actionable_tasks
     )
     missing_keywords = _missing_keywords(plan, metadata.actionable_tasks)
-    human_feasibility_flags = check_feasibility(plan)
+    human_feasibility_flags, feasibility_errors = check_feasibility(plan)
     zero_duration_flags = 0
 
     errors: list[str] = list(constraint_errors)
+    errors.extend(feasibility_errors)
     current_dt = isoparse(current_time)
     for item in plan:
         start_dt = isoparse(item.start_time)
@@ -253,6 +254,11 @@ def _repair_plan(
         "10 AM, NO task can start at 9:59 AM.\n"
         "RULE 2: Do not delete tasks to fix overlaps. Shorten them instead "
         "(e.g., change 60m to 15m)."
+    )
+    repair_prompt = (
+        f"{repair_prompt}\n\n"
+        "Your previous attempt used unrealistic 5-minute durations. Increase "
+        "durations to at least 25 minutes and shift other tasks accordingly."
     )
     if constraint_violation_count > 0:
         repair_prompt = (
