@@ -129,7 +129,18 @@
           <span class="status-icon">◯</span>
           <span class="status-text">AWAITING PLAN</span>
         </div>
-        
+
+        <!-- Terminal Console (Engine Logs) -->
+        <div id="terminal-console" class="terminal-console">
+          <div class="terminal-header">
+            <span class="terminal-title">ENGINE LOGS</span>
+            <span class="terminal-status">READY</span>
+          </div>
+          <div id="terminal-output" class="terminal-output">
+            <span class="terminal-cursor"></span>
+          </div>
+        </div>
+
         <!-- Extracted Constraints (PR 2.1) -->
         <div id="constraints-section" class="constraints-section">
           <h3 class="section-title">Extracted Constraints</h3>
@@ -265,17 +276,6 @@
           <span class="trace-text">View Validation Log</span>
         </button>
         <div id="trace-log-modal" class="trace-log-modal trace-log-modal--hidden"></div>
-
-        <!-- Terminal Console (Technical Logs) -->
-        <div id="terminal-console" class="terminal-console">
-          <div class="terminal-header">
-            <span class="terminal-title">System Diagnostics</span>
-            <span class="terminal-status">READY</span>
-          </div>
-          <div id="terminal-output" class="terminal-output">
-            <span class="terminal-cursor"></span>
-          </div>
-        </div>
       </aside>
     </main>
   </div>
